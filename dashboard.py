@@ -1,6 +1,6 @@
 import streamlit as st
 import camera
-
+camera.render_camera_module()
 def show_dashboard():
     st.title("🛡️ APEX Security Dashboard")
     st.write("سیستەمی چاودێری و حوکمڕانی")
