@@ -1,8 +1,4 @@
-from os import name
-
 import streamlit as st
-st.set_page_config(page_title="APEX Security", layout="wide")
-
 import sqlite3
 import random
 import string
@@ -10,9 +6,10 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from style import apply_apex_style
+
 def send_email_to_user(receiver_email, username, access_code):
-    sender_email = "123kaivn123@gmail.com"  # ئیمەیڵی خۆت لێرە بنووسە
-    sender_password = "xlli qsgt nlko xbss"  # کۆدی تایبەتی ئەپڵیکەیشن لێرە بنووسە
+    sender_email = "YOUR_ADMIN_EMAIL@gmail.com"  # ئیمەیڵی خۆت لێرە بنووسە
+    sender_password = "YOUR_APP_PASSWORD"         # کۆدی تایبەتی ئەپڵیکەیشن لێرە بنووسە
     
     subject = "🛡️ APEX Security - Access Code Approved"
     body = f"""
@@ -26,6 +23,7 @@ def send_email_to_user(receiver_email, username, access_code):
     Best regards,
     APEX Security Team
     """
+    
     message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
@@ -98,15 +96,3 @@ def show_admin():
                         generated_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
                         
                         email_sent = send_email_to_user(p[2], p[1], generated_code)
-                        
-                        if email_sent:
-                            cursor.execute("UPDATE users SET status='Approved', access_code=? WHERE id=?", (generated_code, p[0]))
-                            conn.commit()
-                            st.success(f"✅ کۆدی دەسەڵات بۆ {p[1]} نێردرا!")
-                        else:
-                            st.error("❌ هەڵە لە نێردنی ئیمەیڵ")
-            
-            conn.close()
-
-if __name__ == "__main__":
-    show_admin()
