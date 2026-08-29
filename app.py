@@ -8,7 +8,7 @@ st.set_page_config(
 )
 
 def main():
-    # دیزاینی ستایلی سەرەکی و تایتڵ
+    # دیزاینی ستایلی سەرەکی
     st.markdown("""
         <style>
         .main-title {
@@ -22,11 +22,11 @@ def main():
     st.markdown("<h1 class='main-title'>🛡 APEX SECURITY SYSTEM</h1>", unsafe_allow_html=True)
     st.write("---")
 
-    # سیستەمی کۆنتڕۆڵی لاوەکی بۆ گۆڕینی بەشەکان بە بێ کێشە
-    menu = st.sidebar.selectbox("Navigation", ["Home / Login", "Admin Console"])
+    # سیستەمی کۆنتڕۆڵی لاوەکی بۆ هەرسێ بەشەکە
+    menu = st.sidebar.selectbox("Navigation", ["Login", "Register / KYC", "Admin Console"])
 
-    if menu == "Home / Login":
-        st.subheader("🔐 User Authentication & KYC")
+    if menu == "Login":
+        st.subheader("🔐 User Login")
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         
@@ -36,13 +36,25 @@ def main():
             else:
                 st.warning("Please enter both username and password.")
 
+    elif menu == "Register / KYC":
+        st.subheader("📝 New User Registration & KYC")
+        reg_username = st.text_input("Choose Username")
+        reg_email = st.text_input("Email Address")
+        reg_password = st.text_input("Choose Password", type="password")
+        kyc_info = st.text_area("KYC Details / Security Notes")
+        
+        if st.button("Submit Registration"):
+            if reg_username and reg_password:
+                st.success("Registration & KYC data submitted successfully!")
+            else:
+                st.warning("Please fill in the required fields.")
+
     elif menu == "Admin Console":
         st.subheader("🛡 APEX ADMIN CONSOLE")
         admin_pass = st.text_input("Enter Admin Password", type="password")
         
         if admin_pass == "123":
             st.success("Access Granted to Admin Panel!")
-            # لێرە کۆدی بەشی ئەدمن یان داتابەیسەکەت دادەنێی
             st.info("System logs and security configurations are active.")
         elif admin_pass:
             st.error("Incorrect Admin Password!")
