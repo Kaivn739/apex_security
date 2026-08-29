@@ -1,3 +1,5 @@
+from unicodedata import name
+
 import streamlit as st
 
 # ڕێکخستنی سەرەتایی پەڕە
@@ -77,5 +79,5 @@ def main():
         with col2:
             st.metric(label="Active Connections", value="1 LAN Camera", delta="Online")
 
-if name == "main":
+if __name__ == "__main__":
     main()
