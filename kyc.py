@@ -24,7 +24,7 @@ def render_kyc():
             front_file = st.file_uploader("Front Side / دیوی پێشەوەی بەڵگەنامە", type=["jpg", "jpeg", "png"])
             back_file = st.file_uploader("Back Side / دیوی دواوەی بەڵگەنامە (ئەگەر هەبوو)", type=["jpg", "jpeg", "png"])
             
-            st.markdown("---")
+            st.markdown(agreement_html, unsafe_allow_html=True)
             st.subheader("3. Digital Signature / واژۆی ئەلیکترۆنی")
             signature = st.text_input("Type your full name as Digital Signature / ناوی تەواوت بنووسە وەکو واژۆ")
             
