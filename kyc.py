@@ -1,98 +1,53 @@
 import streamlit as st
-import sqlite3
-import random
-import string
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from kyc_engine import process_id_document, generate_formal_agreement, save_kyc_record
 from style import apply_apex_style
 
-def send_email_to_user(receiver_email, username, access_code):
-    sender_email = "YOUR_ADMIN_EMAIL@gmail.com"  # ئیمەیڵی خۆت لێرە بنووسە
-    sender_password = "YOUR_APP_PASSWORD"         # کۆدی تایبەتی ئەپڵیکەیشن لێرە بنووسە
-    
-    subject = "🛡️ APEX Security - Access Code Approved"
-    body = f"""
-    Hello {username},
-    
-    Your KYC application for APEX Security Console has been APPROVED.
-    Your secure access code is: {access_code}
-    
-    Keep this code confidential.
-    
-    Best regards,
-    APEX Security Team
-    """
-    
-    message = MIMEMultipart()
-    message["From"] = sender_email
-    message["To"] = receiver_email
-    message["Subject"] = subject
-    message.attach(MIMEText(body, "plain"))
-    
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
-        return False
-
-def show_admin():
+def render_kyc():
     apply_apex_style()
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center; color: #FF0033;'>🛡️ APEX ADMIN</h1>", unsafe_allow_html=True)
-        st.markdown("<h4 style='text-align: center; color: #A0A0A0;'>SECURE MANAGEMENT CONSOLE</h4><br>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #FF0033;'>🛡 APEX ENTERPRISE KYC</h1>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center; color: #A0A0A0;'>SECURE IDENTITY VERIFICATION & AGREEMENT</h4><br>", unsafe_allow_html=True)
         
-        admin_pass = st.text_input("ADMIN ACCESS PASSWORD", type="password", placeholder="Enter admin password...")
-        
-        if admin_pass == "123":
-            st.success("✅ دەسەڵاتی بەڕێوەبەر چالاک کرا.")
+        with st.form("advanced_kyc_form"):
+            st.subheader("1. User Information / زانیاری کەسی")
+            username = st.text_input("Username / ناوی بەکارهێنەر")
+            email = st.text_input("Email Address / ئیمەیڵ")
+            phone = st.text_input("Phone Number / ژمارەی تەلەفۆن")
+            address = st.text_input("Address / ناونیشان")
+            
             st.markdown("---")
-            st.subheader("📋 داواکارییە چاوەڕوانکراوەکانی KYC")
+            st.subheader("2. Official Document Upload / بارکردنی کارتی نیشتمانی یان پاسپۆرت")
+            doc_file = st.file_uploader("Upload ID Card or Passport (Image)", type=["jpg", "jpeg", "png"])
             
-            conn = sqlite3.connect('apex_security.db')
-            cursor = conn.cursor()
+            st.markdown("---")
+            st.subheader("3. Facial Verification / وێنەی دەموچاو (Selfie)")
+            selfie_file = st.camera_input("Take a clear photo of your face")
             
-            # دڵنیابوون لە بوونی خشتەکە بۆ ئەوەی هەڵە نەدات
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT,
-                    email TEXT,
-                    phone TEXT,
-                    address TEXT,
-                    access_code TEXT,
-                    status TEXT
-                )
-            ''')
-            conn.commit()
+            submit_btn = st.form_submit_button("Process KYC & Generate A4 Agreement / پرۆسێسکردن و دروستکردنی گرێبەست")
             
-            cursor.execute("SELECT id, username, email, phone, address FROM users WHERE status='Pending'")
-            pending_users = cursor.fetchall()
-            
-            if not pending_users:
-                st.info("هیچ داواکارییەکی چاوەڕوانکراو نییە. (تکایە سەرەتا فرمی KYC پڕ بکەرەوە)")
-            else:
-                for p in pending_users:
-                    st.markdown(f"""
-                        <div style="background-color: #120505; padding: 15px; border-radius: 8px; border: 1px solid #8B0000; margin-bottom: 10px;">
-                            <b>ID:</b> {p[0]}<br>
-                            <b>Username/Name:</b> {p[1]}<br>
-                            <b>Email:</b> {p[2]}<br>
-                            <b>Phone:</b> {p[3]}<br>
-                            <b>Address:</b> {p[4]}
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if st.button(f"Approve & Send Code to {p[1]}", key=f"approve_btn_{p[0]}"):
-                        generated_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if submit_btn:
+                if not username or not email or not doc_file:
+                    st.warning("⚠️ تکایە هەموو خانە سەرەکییەکان پڕ بکەرەوە و وێنەی بەڵگەنامەکە بار بکە!")
+                else:
+                    with st.spinner("🔄 ئیشکردن لەسەر خوێندنەوەی بەڵگەنامە (OCR) و دروستکردنی گرێبەست..."):
+                        # خوێندنەوەی دەقی بەڵگەنامەکە بە EasyOCR
+                        extracted_text = process_id_document(doc_file)
                         
-                        email_sent = send_email_to_user(p[2], p[1], generated_code)
+                        # سەیڤکردنی لە داتابەیسدا
+                        saved = save_kyc_record(username, email, phone, address, extracted_text)
+                        
+                        if saved:
+                            st.success("✅ پرۆسەی KYC بە سەرکەوتوویی تێپەڕی و داتاکان سەیڤ کران!")
+                            
+                            # نیشاندانی فۆڕمی فەرمی A4 بۆ بەکارهێنەر
+                            st.markdown("### 📄 Official A4 Security & Privacy Agreement")
+                            agreement_html = generate_formal_agreement(username, extracted_text)
+                            st.markdown(agreement_html, unsafe_allow_html=True)
+                            
+                            st.info("ℹ️ ئێستا دەتوانیت چاوەڕێی پەسەندکردنی کۆتایی ئەدمین بیت بۆ وەرگرتنی کلیلی چوونەژوورەوە.")
+                        else:
+                            st.error("❌ هەڵەیەک ڕوودا لە سەیڤکردنی داتاکە.")
