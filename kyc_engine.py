@@ -25,7 +25,7 @@ def process_id_document(image_file):
     except Exception as e:
         return f"OCR Error: {e}"
 
-def generate_formal_agreement(username, document_info):
+def generate_formal_agreement(email, phone, username, document_info):
     """دروستکردنی دەقی گرێبەستی فەرمی A4 لەگەڵ مەرجەکانی Privacy Security"""
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -36,6 +36,8 @@ def generate_formal_agreement(username, document_info):
         <hr style="border: 1px solid #FF0033;">
         <p><b>Date & Time:</b> {current_date}</p>
         <p><b>Registered Operator / User:</b> {username}</p>
+        <p><b>Email:</b> {email}</p>
+        <p><b>Phone:</b> {phone}</p>
         
         <h3 style="color: #333333;">1. Privacy & Security Policy</h3>
         <p>By signing this agreement, the user acknowledges and agrees that all surveillance data, facial recognition logs, and system interactions within the APEX platform are strictly monitored, encrypted, and protected under enterprise-grade security regulations.</p>
