@@ -3,6 +3,44 @@ from kyc_engine import process_id_document, generate_formal_agreement, save_kyc_
 from style import apply_apex_style
 
 def render_kyc():
+    st.subheader("🛡 Enterprise KYC & Document Verification")
+    
+    with st.form("advanced_kyc_form"):
+        st.subheader("1. Contact Information / زانیاری پەیوەندی")
+        email = st.text_input("Email Address / ئیمەیڵ بۆ ناردنی کۆد")
+        phone = st.text_input("Phone Number / ژمارەی تەلەفۆن")
+        
+        st.subheader("2. Document Upload / بارکردنی کارتی نیشتمانی یان پاسپۆرت")
+        st.info("تکایە هەردوو دیوی کارتەکە (پێشەوە و دواوە) بار بکە بۆ خوێندنەوەی خۆکار")
+        
+        front_file = st.file_uploader("Front Side / دیوی پێشەوەی بەڵگەنامە", type=["jpg", "jpeg", "png"])
+        back_file = st.file_uploader("Back Side / دیوی دواوەی بەڵگەنامە (ئەگەر هەبێت)", type=["jpg", "jpeg", "png"])
+        
+        st.subheader("3. Digital Signature / واژۆی ئەلکترۆنی")
+        signature = st.text_input("Type your full name as Digital Signature / ناوی تەواوت بنووسە وەک واژۆ")
+        
+        submit_btn = st.form_submit_button("Process Document & Generate A4 Agreement / خوێندنەوە و دروستکردنی گرێبەست")
+
+    if submit_btn:
+        if not email or not phone or not front_file or not signature:
+            st.error("❌ تکایە هەموو خانە پێویستەکان پڕبکەرەوە و وێنەی کارتەکە بار بکە!")
+        else:
+            with st.spinner("⏳ خەریکی خوێندنەوەی بەڵگەنامەکە و تۆمارکردنین..."):
+                # خوێندنەوەی دەق لە وێنەکان بە OCR
+                extracted_text = process_id_document(front_file, back_file)
+                
+                # سەیڤکردن لە داتابەیسدا
+                save_result = save_kyc_record(email, phone, extracted_text, signature)
+                
+                if save_result is True:
+                    st.success("✅ زانیارییەکان بە سەرکەوتوویی پاشەکەوت کران!")
+                    
+                    # دروستکردن و نیشاندانی گرێبەستی فەرمی A4
+                    agreement_html = generate_formal_agreement(email, phone, extracted_text, signature)
+                    st.markdown(agreement_html, unsafe_allow_html=True)
+                else:
+                    st.error(f"❌ هەڵەیەک ڕوودا لە پاشەکەوتکردنی داتاکە: {save_result}")
+    
     apply_apex_style()
     
     col1, col2, col3 = st.columns([1, 2, 1])
