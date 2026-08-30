@@ -32,7 +32,7 @@ def generate_formal_agreement(email, phone, username, document_info, signature):
     agreement_html = f"""
     <div style="background-color: #ffffff; color: #000000; padding: 30px; border-radius: 5px; border: 2px solid #FF0033; font-family: Arial, sans-serif;">
         <h2 style="text-align: center; color: #FF0033;">🛡 APEX SECURITY SOLUTIONS</h2>
-        <h4 style="text-align: center; color: #55555;>OFFICIAL ENTERPRISE KYC & PRIVACY AGREEMENT</h4>
+        <h4 style="text-align: center; color: #555555;">OFFICIAL ENTERPRISE KYC & PRIVACY AGREEMENT</h4>
         <hr style="border: 1px solid #FF0033;">
         <p><b>Date & Time:</b> {current_date}</p>
         <p><b>Registered Operator / User:</b> {username}</p>
@@ -72,21 +72,18 @@ def save_kyc_record(email, phone, doc_data, signature):
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT,
                 email TEXT,
                 phone TEXT,
-                address TEXT,
                 doc_data TEXT,
                 signature TEXT,
-                access_code TEXT,
                 status TEXT
             )
         ''')
         conn.commit()
         
         cursor.execute(
-            "INSERT INTO users (username, email, phone, address, doc_data, signature, access_code, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            ("", email, phone, "", doc_data, signature, "", "Pending")
+            "INSERT INTO users (email, phone, doc_data, signature, status) VALUES (?, ?, ?, ?, ?)",
+            (email, phone, doc_data, signature, "Pending")
         )
         conn.commit()
         conn.close()
