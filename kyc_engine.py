@@ -25,7 +25,7 @@ def process_id_document(image_file):
     except Exception as e:
         return f"OCR Error: {e}"
 
-def generate_formal_agreement(email, phone, username, document_info):
+def generate_formal_agreement(email, phone, username, document_info, signature):
     """دروستکردنی دەقی گرێبەستی فەرمی A4 لەگەڵ مەرجەکانی Privacy Security"""
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -56,14 +56,14 @@ def generate_formal_agreement(email, phone, username, document_info):
             </div>
             <div style="text-align: right;">
                 <p><b>User Digital Signature:</b></p>
-                <p style="font-family: cursive; color: blue;">{username} (Confirmed)</p>
+                <p style="font-family: cursive; color: blue;">{signature}</p>
             </div>
         </div>
     </div>
     """
     return agreement_html
 
-def save_kyc_record(username, email, phone, address, doc_text):
+def save_kyc_record(username, email, phone, address, doc_text, signature):
     """سەیڤکردنی سەرجەم زانیارییەکان لە داتابەیسدا"""
     try:
         conn = sqlite3.connect('apex_security.db')
@@ -77,6 +77,7 @@ def save_kyc_record(username, email, phone, address, doc_text):
                 phone TEXT,
                 address TEXT,
                 doc_data TEXT,
+                signature TEXT,
                 access_code TEXT,
                 status TEXT
             )
@@ -84,8 +85,8 @@ def save_kyc_record(username, email, phone, address, doc_text):
         conn.commit()
         
         cursor.execute(
-            "INSERT INTO users (username, email, phone, address, doc_data, access_code, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (username, email, phone, address, doc_text, "", "Pending")
+            "INSERT INTO users (username, email, phone, address, doc_data, signature, access_code, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (username, email, phone, address, doc_text, signature, "", "Pending")
         )
         conn.commit()
         conn.close()
