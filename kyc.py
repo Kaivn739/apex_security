@@ -1,5 +1,5 @@
 import streamlit as st
-from kyc_engine import process_id_documents, generate_formal_agreement, save_kyc_record
+from kyc_engine import process_id_document, generate_formal_agreement, save_kyc_record
 from style import apply_apex_style
 
 def render_kyc():
@@ -36,7 +36,9 @@ def render_kyc():
                 else:
                     with st.spinner("🔄 خەریکی خوێندنەوەی وێنەکانە (OCR) و دروستکردنی گرێبەستی A4..."):
                         # خوێندنەوەی دەقی هەردوو دیوی بەڵگەنامەکە
-                        extracted_text = process_id_documents(front_file, back_file)
+                        extracted_text = process_id_document(front_file)
+                        if back_file:
+                            extracted_text += " " + process_id_document(back_file)
                         
                         # سەیڤکردن لە داتابەیسدا (بە ناردنی ئیمەیڵ و تەلەفۆن)
                         saved = save_kyc_record(email, phone, extracted_text, signature)
