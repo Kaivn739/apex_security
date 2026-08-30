@@ -47,12 +47,7 @@ def main():
                         st.warning("Please fill in all fields.")
 
         elif choice == "Register / KYC":
-            # بانگکردنی بەشی KYC لە فایلی kyc.py
-            if hasattr(kyc, 'render_kyc'):
-                kyc.render_kyc()
-            else:
-                st.subheader("📝 New User Registration & KYC")
-                st.info("KYC module is ready to be linked.")
+            kyc.render_kyc()
 
         elif choice == "Admin Console":
             # بانگکردنی بەشی ئەدمن لە فایلی admin.py
