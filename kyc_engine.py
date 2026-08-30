@@ -89,5 +89,5 @@ def save_kyc_record(email, phone, doc_data, signature):
         conn.close()
         return True
     except Exception as e:
-        print(f"Database error: {e}")
+        st.error(f"Database error details: {e}")
         return False
