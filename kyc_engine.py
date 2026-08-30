@@ -63,7 +63,7 @@ def generate_formal_agreement(email, phone, username, document_info, signature):
     """
     return agreement_html
 
-def save_kyc_record(username, email, phone, address, doc_text, signature):
+def save_kyc_record(email, phone, doc_data, signature):
     """سەیڤکردنی سەرجەم زانیارییەکان لە داتابەیسدا"""
     try:
         conn = sqlite3.connect('apex_security.db')
@@ -86,7 +86,7 @@ def save_kyc_record(username, email, phone, address, doc_text, signature):
         
         cursor.execute(
             "INSERT INTO users (username, email, phone, address, doc_data, signature, access_code, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (username, email, phone, address, doc_text, signature, "", "Pending")
+            ("", email, phone, "", doc_data, signature, "", "Pending")
         )
         conn.commit()
         conn.close()
