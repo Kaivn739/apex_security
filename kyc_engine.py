@@ -5,70 +5,62 @@ import easyocr
 import sqlite3
 from datetime import datetime
 
-# کردنەوەی ڕیدەری EasyOCR (بۆ خوێندنەوەی کوردی/عەرەبی یان ئینگلیزی لەسەر پاسپۆرت و کارت)
 @st.cache_resource
 def load_ocr_reader():
     return easyocr.Reader(['en', 'ar'])
 
-def process_id_document(image_file):
-    """خوێندنەوەی دەق لە وێنەی کارتی نیشتمانی یان پاسپۆرت"""
+def process_id_document(front_file, back_file=None):
+    """خوێندنەوەی دەق لە هەردوو دیوی کارتی نیشتمانی یان پاسپۆرت"""
     try:
-        bytes_data = image_file.read()
-        np_array = np.frombuffer(bytes_data, np.uint8)
-        img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-        
         reader = load_ocr_reader()
-        results = reader.readtext(img)
+        extracted_texts = []
         
-        extracted_text = " ".join([res[1] for res in results])
-        return extracted_text
+        if front_file:
+            bytes_data = front_file.read()
+            np_array = np.frombuffer(bytes_data, np.uint8)
+            img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+            if img is not None:
+                results = reader.readtext(img)
+                front_text = " ".join([res[1] for res in results])
+                extracted_texts.append(f"--- Front Side ---\n{front_text}")
+            
+        if back_file:
+            bytes_data_b = back_file.read()
+            np_array_b = np.frombuffer(bytes_data_b, np.uint8)
+            img_b = cv2.imdecode(np_array_b, cv2.IMREAD_COLOR)
+            if img_b is not None:
+                results_b = reader.readtext(img_b)
+                back_text = " ".join([res[1] for res in results_b])
+                extracted_texts.append(f"--- Back Side ---\n{back_text}")
+            
+        return "\n".join(extracted_texts) if extracted_texts else "No text found"
     except Exception as e:
-        return f"OCR Error: {e}"
+        return f"OCR Error: {str(e)}"
 
-def generate_formal_agreement(email, phone, username, document_info, signature):
-    """دروستکردنی دەقی گرێبەستی فەرمی A4 لەگەڵ مەرجەکانی Privacy Security"""
+def generate_formal_agreement(email, phone, document_info, signature):
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
     agreement_html = f"""
     <div style="background-color: #ffffff; color: #000000; padding: 30px; border-radius: 5px; border: 2px solid #FF0033; font-family: Arial, sans-serif;">
         <h2 style="text-align: center; color: #FF0033;">🛡 APEX SECURITY SOLUTIONS</h2>
         <h4 style="text-align: center; color: #555555;">OFFICIAL ENTERPRISE KYC & PRIVACY AGREEMENT</h4>
         <hr style="border: 1px solid #FF0033;">
         <p><b>Date & Time:</b> {current_date}</p>
-        <p><b>Registered Operator / User:</b> {username}</p>
-        <p><b>Email:</b> {email}</p>
-        <p><b>Phone:</b> {phone}</p>
-        
-        <h3 style="color: #333333;">1. Privacy & Security Policy</h3>
-        <p>By signing this agreement, the user acknowledges and agrees that all surveillance data, facial recognition logs, and system interactions within the APEX platform are strictly monitored, encrypted, and protected under enterprise-grade security regulations.</p>
-        
-        <h3 style="color: #333333;">2. Document Verification Data</h3>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ccc; font-family: monospace;">{document_info}</p>
-        
-        <h3 style="color: #333333;">3. Terms and Conditions</h3>
-        <p>The user agrees not to misuse access credentials, network video streams (LAN/HDMI), or secure agency nodes. Any unauthorized access will result in immediate termination of the account and legal actions.</p>
-        
-        <br><br>
+        <p><b>Client Email:</b> {email} | <b>Phone:</b> {phone}</p>
+        <h3 style="color: #333333;">1. Extracted Document Information (OCR)</h3>
+        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap;">{document_info}</p>
+        <br>
         <div style="display: flex; justify-content: space-between;">
-            <div>
-                <p><b>APEX Security Authority</b></p>
-                <p style="color: green;">[Digitally Verified & Locked]</p>
-            </div>
-            <div style="text-align: right;">
-                <p><b>User Digital Signature:</b></p>
-                <p style="font-family: cursive; color: blue;">{signature}</p>
-            </div>
+            <div><p><b>APEX Security Authority</b></p><p style="color: green;">[Verified]</p></div>
+            <div style="text-align: right;"><p><b>Digital Signature:</b></p><p style="font-family: cursive; color: blue; font-size: 18px;">{signature}</p></div>
         </div>
     </div>
     """
     return agreement_html
 
-def save_kyc_record(email, phone, doc_data, signature):
-    """سەیڤکردنی سەرجەم زانیارییەکان لە داتابەیسدا"""
+def save_kyc_record(email, phone, doc_text, signature):
     try:
         conn = sqlite3.connect('apex_security.db')
         cursor = conn.cursor()
-        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,14 +72,12 @@ def save_kyc_record(email, phone, doc_data, signature):
             )
         ''')
         conn.commit()
-        
         cursor.execute(
             "INSERT INTO users (email, phone, doc_data, signature, status) VALUES (?, ?, ?, ?, ?)",
-            (email, phone, doc_data, signature, "Pending")
+            (email, phone, doc_text, signature, "Pending")
         )
         conn.commit()
         conn.close()
         return True
     except Exception as e:
-        st.error(f"Database error details: {e}")
-        return False
+        return str(e)
