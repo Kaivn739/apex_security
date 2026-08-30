@@ -40,18 +40,32 @@ def process_id_document(front_file, back_file=None):
 def generate_formal_agreement(email, phone, document_info, signature):
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     agreement_html = f"""
-    <div style="background-color: #ffffff; color: #000000; padding: 30px; border-radius: 5px; border: 2px solid #FF0033; font-family: Arial, sans-serif;">
-        <h2 style="text-align: center; color: #FF0033;">🛡 APEX SECURITY SOLUTIONS</h2>
-        <h4 style="text-align: center; color: #555555;">OFFICIAL ENTERPRISE KYC & PRIVACY AGREEMENT</h4>
-        <hr style="border: 1px solid #FF0033;">
+    <div style="max-width: 800px; margin: auto; background-color: #ffffff; color: #000000; padding: 40px; border-radius: 8px; border: 3px solid #FF0033; font-family: Arial, sans-serif; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <div style="text-align: right;">
+            <button onclick="window.print()" style="background-color: #FF0033; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">🖨️ Print / پرینت کردن</button>
+        </div>
+        <h2 style="text-align: center; color: #FF0033; margin-top: 0;">🛡 APEX SECURITY SOLUTIONS</h2>
+        <h4 style="text-align: center; color: #555555;">OFFICIAL ENTERPRISE KYC & PRIVACY AGREEMENT (A4 FORMAT)</h4>
+        <hr style="border: 1px solid #FF0033; margin: 20px 0;">
         <p><b>Date & Time:</b> {current_date}</p>
         <p><b>Client Email:</b> {email} | <b>Phone:</b> {phone}</p>
-        <h3 style="color: #333333;">1. Extracted Document Information (OCR)</h3>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap;">{document_info}</p>
-        <br>
-        <div style="display: flex; justify-content: space-between;">
-            <div><p><b>APEX Security Authority</b></p><p style="color: green;">[Verified]</p></div>
-            <div style="text-align: right;"><p><b>Digital Signature:</b></p><p style="font-family: cursive; color: blue; font-size: 18px;">{signature}</p></div>
+        
+        <h3 style="color: #333333; margin-top: 20px;">1. Extracted Document Information (OCR)</h3>
+        <textarea style="width: 100%; height: 150px; background-color: #f9f9f9; padding: 10px; border: 1px solid #ccc; font-family: monospace; font-size: 14px;" readonly>{document_info}</textarea>
+        
+        <h3 style="color: #333333; margin-top: 20px;">2. Terms and Conditions</h3>
+        <p style="font-size: 13px; color: #444;">By signing this agreement, the client acknowledges strict adherence to APEX enterprise platform security policies and data confidentiality regulations.</p>
+        
+        <br><br>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ddd; padding-top: 20px;">
+            <div>
+                <p style="margin: 0;"><b>APEX Security Authority</b></p>
+                <p style="color: green; margin: 0; font-weight: bold;">[Verified & Approved]</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0;"><b>Digital Signature:</b></p>
+                <p style="font-family: cursive; color: blue; font-size: 20px; margin: 0;">{signature}</p>
+            </div>
         </div>
     </div>
     """
