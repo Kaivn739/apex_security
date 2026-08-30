@@ -17,7 +17,7 @@ def render_kyc():
             email = st.text_input("Email Address / ئیمەیڵ بۆ ناردنی کۆد")
             phone = st.text_input("Phone Number / ژمارەی تەلەفۆن")
             
-            st.markdown("---")
+            st.markdown(agreement_html, unsafe_allow_html=True)
             st.subheader("2. Document Upload / بارکردنی کارتی نیشتمانی یان پاسپۆرت")
             st.info("تکایە هەردوو دیوی کارتەکە (پێشەوە و دواوە) بار بکە بۆ خوێندنەوەی خۆکار.")
             
