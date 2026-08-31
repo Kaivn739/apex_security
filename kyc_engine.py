@@ -37,7 +37,7 @@ def process_id_document(front_file, back_file=None):
     except Exception as e:
         return f"OCR Error: {str(e)}"
 
-def generate_formal_agreement(email, phone, document_info, signature):
+def generate_formal_agreement(email, phone, document_info):
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     agreement_html = f"""
@@ -54,7 +54,6 @@ def generate_formal_agreement(email, phone, document_info, signature):
         
         <h3 style="color: #333333; margin-top: 20px; border-bottom: 2px solid #FF0033; padding-bottom: 5px;">📋 Extracted Document Analysis (Structured Data)</h3>
         
-        <!-- سندوقی جیاکراوە بۆ زانیارییەکان -->
         <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; margin-top: 10px;">
             <p style="margin: 8px 0;"><b>🪪 Document Raw Extraction:</b></p>
             <div style="background-color: #ffffff; padding: 12px; border: 1px dashed #adb5bd; border-radius: 4px; font-family: monospace; font-size: 13px; color: #333; white-space: pre-wrap; line-height: 1.6;">{document_info}</div>
@@ -70,8 +69,8 @@ def generate_formal_agreement(email, phone, document_info, signature):
                 <p style="color: green; margin: 0; font-weight: bold;">[Verified & Approved]</p>
             </div>
             <div style="text-align: right;">
-                <p style="margin: 0;"><b>Digital Signature:</b></p>
-                <p style="font-family: cursive; color: blue; font-size: 20px; margin: 0;">{signature}</p>
+                <p style="margin: 0;"><b>Status:</b></p>
+                <p style="color: blue; font-size: 16px; margin: 0;">Official Record</p>
             </div>
         </div>
     </div>
