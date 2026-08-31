@@ -78,7 +78,32 @@ def generate_formal_agreement(email, phone, document_info, signature):
     """
     return agreement_html
 
-def save_kyc_record(email, phone, doc_text, signature):
+def save_kyc_record(email, phone, doc_text):
+    try:
+        conn = sqlite3.connect('apex_security.db')
+        cursor = conn.cursor()
+        
+        # دروستکردنی خشتە بە ستوونە فەرمییەکان بێ واژۆی ناو فۆرمەکە
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users_kyc (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT,
+                phone TEXT,
+                doc_data TEXT,
+                status TEXT
+            )
+        ''')
+        conn.commit()
+        
+        cursor.execute(
+            "INSERT INTO users_kyc (email, phone, doc_data, status) VALUES (?, ?, ?, ?)",
+            (email, phone, doc_text, "Pending")
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        return str(e)
     try:
         conn = sqlite3.connect('apex_security.db')
         cursor = conn.cursor()
