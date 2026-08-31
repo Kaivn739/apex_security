@@ -82,6 +82,7 @@ def save_kyc_record(email, phone, doc_text, signature):
     try:
         conn = sqlite3.connect('apex_security.db')
         cursor = conn.cursor()
+        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +94,13 @@ def save_kyc_record(email, phone, doc_text, signature):
             )
         ''')
         conn.commit()
+        
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'doc_data' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN doc_data TEXT")
+            conn.commit()
+
         cursor.execute(
             "INSERT INTO users (email, phone, doc_data, signature, status) VALUES (?, ?, ?, ?, ?)",
             (email, phone, doc_text, signature, "Pending")
