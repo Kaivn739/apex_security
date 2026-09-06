@@ -1,70 +1,47 @@
-from datetime import datetime
 import sqlite3
 
+DB_NAME = "apex_security.db"
+
+def get_connection():
+    """دابینکردنی پەیوەندی لەگەڵ داتا بەیسی لۆکاڵی"""
+    conn = sqlite3.connect(DB_NAME)
+    return conn
 
 def init_db():
-  conn = sqlite3.connect("apex_security.db")
-  cursor = conn.cursor()
-
-  # دروستکردنی خشتەی بەکارهێنەران
-  cursor.execute("""
+    """دروستکردنی خشتە بنەڕەتییەکان ئەگەر نەبن"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # خشتەی بەکارهێنەران بۆ سیستمی چوونەژوورەوە
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY,
-            password TEXT,
-            sector TEXT
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL
         )
     """)
-
-  # دروستکردنی خشتەی لۆگ و چالاکییەکان
-  cursor.execute("""
-        CREATE TABLE IF NOT EXISTS logs (
+    
+    # خشتەی لۆگەکانی ئەمنی و ناسینەوەی ڕوخسار
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS security_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            action_type TEXT,
+            timestamp TEXT NOT NULL,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL,
             details TEXT
         )
     """)
-
-  # پڕکردنەوەی داتای سەرەتایی ئەگەر خشتەکە خاڵی بێت
-  cursor.execute("SELECT COUNT(*) FROM users")
-  if cursor.fetchone()[0] == 0:
-    default_users = [
-        ("admin", "1234", "گشتی"),
-        ("home_user", "1111", "ماڵەوە"),
-        ("business_user", "2222", "بازرگانی"),
-        ("gov_user", "9999", "حکومی و ئەمنی"),
-    ]
-    cursor.executemany(
-        "INSERT INTO users (username, password, sector) VALUES (?, ?, ?)",
-        default_users,
-    )
-
-  conn.commit()
-  conn.close()
-
-
-def verify_user_db(username, password):
-  conn = sqlite3.connect("apex_security.db")
-  cursor = conn.cursor()
-  cursor.execute(
-      "SELECT sector FROM users WHERE username = ? AND password = ?",
-      (username, password),
-  )
-  result = cursor.fetchone()
-  conn.close()
-  return result
-
-
-def log_activity_db(action_type, details):
-  try:
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    conn = sqlite3.connect("apex_security.db")
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO logs (timestamp, action_type, details) VALUES (?, ?, ?)",
-        (now, action_type, details),
-    )
+    
+    # دروستکردنی ئەکاونتێکی سەرەتایی (Admin) بە شێوازی ڕاستی SQL
+    cursor.execute("""
+        INSERT OR IGNORE INTO users (id, username, password, role)
+        VALUES (1, 'admin', 'admin123', 'administrator')
+    """)
+    
     conn.commit()
     conn.close()
-  except:
-    pass
+
+if __name__ == "__main__":
+    init_db()
+    print("Database and tables initialized successfully.")
