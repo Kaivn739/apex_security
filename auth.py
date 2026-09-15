@@ -1,43 +1,44 @@
 import streamlit as st
-import sqlite3
+import style
 
-def check_credentials(username, password):
-    """پشکنینی ناوی بەکارهێنەر و تێپەڕەوشە لە داتا بەیسدا"""
-    conn = sqlite3.connect("apex_security.db")
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-    user = cursor.fetchone()
-    
-    conn.close()
-    return user
 
 def login_screen():
-    """ڕووکاری چوونەژوورەوەی سیستم"""
-    st.subheader("🔐 چوونەژوورەوە بۆ سیستمی ئەپێکس (Apex Security)")
-    
-    with st.form("login_form"):
-        username = st.text_input("ناوی بەکارهێنەر (Username)")
-        password = st.text_input("تێپەڕەوشە (Password)", type="password")
-        submit_button = st.form_submit_button("چوونەژوورەوە")
-        
-        if submit_button:
-            user = check_credentials(username, password)
-            if user:
-                st.session_state["authenticated"] = True
-                st.session_state["username"] = username
-                st.session_state["role"] = user[3] # پلەی بەکارهێنەر
-                st.success(f"بەخێر بێیتەوە، {username}!")
-                st.rerun()
-            else:
-                st.error("ناوی بەکارهێنەر یان تێپەڕەوشە هەڵەیە!")
+    # 1. سەپاندنی ستایلی شووشەیی لۆگین
+    style.apply_dragon_login_style()
 
-def require_auth():
-    """پشکنین بۆ دڵنیابوون لەوەی ئایا بەکارهێنەر چۆتە ژوورەوە یان نا"""
-    if "authenticated" not in st.session_state:
-        st.session_state["authenticated"] = False
-        
-    if not st.session_state["authenticated"]:
-        login_screen()
-        return False
-    return True
+    # 2. ڕێکخستنی کانتێنەرەکە لە ناوەڕاستدا
+    _, col2, _ = st.columns([1, 2.2, 1])
+
+    with col2:
+        with st.form("dragon_login_form"):
+            st.markdown(
+                "<h1 class='apex-title'>🛡 APEX SECURITY</h1>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                "<p style='text-align: center; color: #cbd5e1; font-size: 13px;'>Welcome to the APEX Security System</p>",
+                unsafe_allow_html=True,
+            )
+
+            username = st.text_input(
+                "Username", placeholder="Enter username...", key="login_user"
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter password...",
+                key="login_pass",
+            )
+
+            submit = st.form_submit_button("LOGIN", use_container_width=True)
+
+            if submit:
+                username = username.strip()
+                password = password.strip()
+
+                if username == "admin" and password in ["1234", "admin"]:
+                    st.session_state.authenticated = True
+                    st.success("Access Granted!")
+                    st.rerun()
+                else:
+                    st.error("Invalid Username or Password.")

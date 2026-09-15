@@ -1,6 +1,2 @@
-[theme]
-base="dark"
-backgroundColor="hsl(0, 0%, 0%)"
-secondaryBackgroundColor="rgb(246, 247, 246)"
-textColor="hsl(0, 100%, 43%)"
-primaryColor="#9b9ea0bb"
+[server]
+run0nsave =true

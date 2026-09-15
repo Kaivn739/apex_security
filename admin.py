@@ -45,7 +45,7 @@ def send_email_to_user(receiver_email, username, access_code):
 def show_admin():
     apply_apex_style()
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    _, col2, _ = st.columns([1, 2, 1])
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -93,7 +93,14 @@ def show_admin():
                     """, unsafe_allow_html=True)
                     
                     if st.button(f"Approve & Email Code to {p[1]}", key=f"approve_btn_{p[0]}"):
-                        # دروستکردنی کۆدێکی نهێنی پۆلێنی
                         generated_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                        
-                        # ناردنی کۆدەکە بۆ ئیمەیڵی بەکارهێنەر
+                        cursor.execute("UPDATE users SET access_code = ?, status = 'Approved' WHERE id = ?", (generated_code, p[0]))
+                        conn.commit()
+
+                        email_sent = send_email_to_user(p[2], p[1], generated_code)
+                        if email_sent:
+                            st.success(f"✅ Approval sent and access code emailed to {p[1]}.")
+                        else:
+                            st.warning("⚠️ User was approved, but email delivery failed.")
+
+                conn.close()
