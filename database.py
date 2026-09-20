@@ -1,47 +1,64 @@
 import sqlite3
+from typing import Union
 
 DB_NAME = "apex_security.db"
 
-def get_connection():
-    """دابینکردنی پەیوەندی لەگەڵ داتا بەیسی لۆکاڵی"""
-    conn = sqlite3.connect(DB_NAME)
-    return conn
 
 def init_db():
-    """دروستکردنی خشتە بنەڕەتییەکان ئەگەر نەبن"""
-    conn = get_connection()
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    # خشتەی بەکارهێنەران بۆ سیستمی چوونەژوورەوە
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS alpr_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL
+            plate_number TEXT NOT NULL,
+            confidence REAL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
-    # خشتەی لۆگەکانی ئەمنی و ناسینەوەی ڕوخسار
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS security_logs (
+        CREATE TABLE IF NOT EXISTS face_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            name TEXT NOT NULL,
+            target_name TEXT NOT NULL,
             status TEXT NOT NULL,
-            details TEXT
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
-    # دروستکردنی ئەکاونتێکی سەرەتایی (Admin) بە شێوازی ڕاستی SQL
-    cursor.execute("""
-        INSERT OR IGNORE INTO users (id, username, password, role)
-        VALUES (1, 'admin', 'admin123', 'administrator')
-    """)
-    
+
     conn.commit()
     conn.close()
 
+
+def log_alpr_event(plate_number: str, confidence: float = 0.0):
+    """پاشەکەوتکردنی تابلۆ بە شێوازی دەق (String)"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO alpr_logs (plate_number, confidence) VALUES (?, ?)",
+            (str(plate_number), float(confidence)),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error logging ALPR: {e}")
+
+
+def log_face_event(target_name: str, status: str = "MATCHED"):
+    """پاشەکەوتکردنی ناوی ڕووخسار بە شێوازی دەق"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO face_logs (target_name, status) VALUES (?, ?)",
+            (str(target_name), str(status)),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error logging Face: {e}")
+
+
 if __name__ == "__main__":
     init_db()
-    print("Database and tables initialized successfully.")
