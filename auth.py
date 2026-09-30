@@ -5,7 +5,7 @@ import style
 def login_screen():
     # 1. سەپاندنی ستایلی شووشەیی لۆگین
     style.apply_dragon_login_style()
-
+     
     # 2. ڕێکخستنی کانتێنەرەکە لە ناوەڕاستدا
     _, col2, _ = st.columns([1, 2.2, 1])
 

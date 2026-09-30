@@ -1,47 +1,12 @@
-import webbrowser
-from datetime import datetime
+import sys
+import traceback
 
+print("🔍 APEX DEBUGGER: دۆزینەوەی سەرچاوەی هەڵەی re.error...")
 
-def show_menu():
-    print("\n" + "=" * 45)
-    print("PYTHON COMMAND ASSISTANT")
-    print("=" * 45)
-    print("Available commands:")
-    print("- time")
-    print("- date")
-    print("- open youtube")
-    print("- open google")
-    print("- help")
-    print("- exit")
+try:
+    import app
 
-
-show_menu()
-
-while True:
-    command = input("\nCommand: ").strip().lower()
-
-    if command == "time":
-        now = datetime.now().strftime("%I:%M %p")
-        print(f"Current time: {now}")
-
-    elif command == "date":
-        today = datetime.now().strftime("%d %B %Y")
-        print(f"Today's date: {today}")
-
-    elif command == "open youtube":
-        webbrowser.open("https://www.youtube.com")
-        print("Opening YouTube...")
-
-    elif command == "open google":
-        webbrowser.open("https://www.google.com")
-        print("Opening Google...")
-
-    elif command == "help":
-        show_menu()
-
-    elif command == "exit":
-        print("Assistant closed.")
-        break
-
-    else:
-        print("Command not recognized.")
+    print("✅ فایلی app.py هیچ هەڵەیەکی تێدا نییە.")
+except Exception as e:
+    print("\n❌ هەڵەی سەرەکی دۆزرایەوە لەم ڕێڕەوەدا:\n")
+    traceback.print_exc()

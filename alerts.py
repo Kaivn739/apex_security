@@ -25,9 +25,9 @@ def send_target_telegram_alert(target_name: str, camera_name: str, frame):
 
     # دەقی پەیامی ئاگادارکردنەوە
     caption_text = (
-        f"🚨 APEX TARGET DETECTED!\n\n"
-        f"👤 Target Name: {target_name}\n"
-        f"📹 Camera: {camera_name}\n"
+        f"🚨 APEX TARGET DETECTED!nn"
+        f"👤 Target Name: {target_name}n"
+        f"📹 Camera: {camera_name}n"
         f"⏰ Time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
     )
 
