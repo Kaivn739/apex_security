@@ -10,14 +10,39 @@ from pathlib import Path
 
 # ============================================================
 # APEX AI DEVELOPER
-# Step 6 - Production Monitoring
+# Stable Foundation - Steps 1 to 9
+#
+# STEP 9:
+# Controlled Change Engine
+#
+# IMPORTANT:
+# Step 9 creates a controlled change plan.
+# It does NOT automatically modify source code.
+# It does NOT perform Git push.
+# It does NOT perform production deployment.
 # ============================================================
 
-VERSION = "6.0.0"
+VERSION = "9.0.0"
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+
 MEMORY_FILE = PROJECT_ROOT / "developer_memory.json"
 BACKUP_DIR = PROJECT_ROOT / ".apex_backups"
+REMEDIATION_LOG_DIR = PROJECT_ROOT / ".apex_remediation_logs"
+MANIFEST_FILE = PROJECT_ROOT / "apex_release_manifest.json"
+CHANGE_PLAN_FILE = PROJECT_ROOT / "apex_change_plan.json"
+
+PYTHON_EXTENSIONS = {".py"}
+
+MONITORING_LOG_EXTENSIONS = {
+    ".log",
+    ".txt",
+}
+
+MAX_LOG_READ_SIZE = 1024 * 1024
+
+MAX_MEMORY_ITEMS = 500
+MAX_TERMINAL_OUTPUT = 10000
 
 IGNORED_PARTS = {
     ".git",
@@ -26,9 +51,11 @@ IGNORED_PARTS = {
     "__pycache__",
     ".idea",
     ".vscode",
+    ".apex_backups",
+    ".apex_remediation_logs",
 }
 
-SAFE_COMMAND_PREFIXES = [
+SAFE_COMMAND_PREFIXES = (
     "python --version",
     "python -m pip --version",
     "pip --version",
@@ -42,9 +69,9 @@ SAFE_COMMAND_PREFIXES = [
     "where code",
     "dir",
     "tree",
-]
+)
 
-BLOCKED_COMMANDS = [
+BLOCKED_COMMANDS = (
     "del",
     "erase",
     "rmdir",
@@ -60,18 +87,9 @@ BLOCKED_COMMANDS = [
     "git reset --hard",
     "git clean",
     "git checkout --",
-]
+)
 
-PYTHON_EXTENSIONS = {".py"}
-
-MONITORING_LOG_EXTENSIONS = {
-    ".log",
-    ".txt",
-}
-
-MAX_LOG_READ_SIZE = 1024 * 1024
-
-ERROR_KEYWORDS = [
+ERROR_KEYWORDS = (
     "error",
     "exception",
     "traceback",
@@ -79,26 +97,75 @@ ERROR_KEYWORDS = [
     "fatal",
     "failed",
     "failure",
-]
+)
 
-WARNING_KEYWORDS = [
+WARNING_KEYWORDS = (
     "warning",
     "warn",
-]
+)
 
 
 # ============================================================
-# MEMORY
+# GENERAL HELPERS
+# ============================================================
+
+
+def now_iso():
+    return datetime.now().isoformat()
+
+
+def relative_path(path):
+    try:
+        return str(Path(path).resolve().relative_to(PROJECT_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def trim_text(
+    value,
+    limit=MAX_TERMINAL_OUTPUT,
+):
+    if value is None:
+        return ""
+
+    value = str(value)
+
+    if len(value) <= limit:
+        return value
+
+    return value[-limit:]
+
+
+def remember(
+    key,
+    value,
+):
+    MEMORY.setdefault(
+        key,
+        [],
+    )
+
+    MEMORY[key].append(value)
+
+    if len(MEMORY[key]) > MAX_MEMORY_ITEMS:
+        MEMORY[key] = MEMORY[key][-MAX_MEMORY_ITEMS:]
+
+
+# ============================================================
+# MEMORY MANAGEMENT
 # ============================================================
 
 
 def create_default_memory():
     return {
-        "version": VERSION,
-        "created_at": datetime.now().isoformat(),
+        "schema_version": 3,
+        "developer_version": VERSION,
+        "created_at": now_iso(),
+        "updated_at": now_iso(),
         "scans": [],
         "syntax_errors": [],
         "import_checks": [],
+        "import_runtime_checks": [],
         "fixes": [],
         "backups": [],
         "terminal_commands": [],
@@ -106,7 +173,28 @@ def create_default_memory():
         "release_preparations": [],
         "monitoring_history": [],
         "monitoring_alerts": [],
+        "remediations": [],
+        "deployments": [],
+        "pipeline_runs": [],
+        "change_plans": [],
+        "change_applications": [],
     }
+
+
+def normalize_memory(memory):
+    default = create_default_memory()
+
+    for key, value in default.items():
+        memory.setdefault(
+            key,
+            value,
+        )
+
+    memory["schema_version"] = 3
+    memory["developer_version"] = VERSION
+    memory["updated_at"] = now_iso()
+
+    return memory
 
 
 def load_memory():
@@ -114,76 +202,79 @@ def load_memory():
         return create_default_memory()
 
     try:
+
         with open(
             MEMORY_FILE,
             "r",
             encoding="utf-8",
         ) as file:
+
             memory = json.load(file)
 
-        memory.setdefault(
-            "version",
-            VERSION,
-        )
-        memory.setdefault(
-            "scans",
-            [],
-        )
-        memory.setdefault(
-            "syntax_errors",
-            [],
-        )
-        memory.setdefault(
-            "import_checks",
-            [],
-        )
-        memory.setdefault(
-            "fixes",
-            [],
-        )
-        memory.setdefault(
-            "backups",
-            [],
-        )
-        memory.setdefault(
-            "terminal_commands",
-            [],
-        )
-        memory.setdefault(
-            "release_checks",
-            [],
-        )
-        memory.setdefault(
-            "release_preparations",
-            [],
-        )
-        memory.setdefault(
-            "monitoring_history",
-            [],
-        )
-        memory.setdefault("monitoring_alerts", [])
+        if not isinstance(memory, dict):
+            return create_default_memory()
 
-        return memory
+        return normalize_memory(memory)
 
     except (
         json.JSONDecodeError,
         OSError,
+        TypeError,
     ):
+
+        print("⚠️ Existing memory could not be loaded.")
+
+        print("⚠️ Creating a fresh developer memory.")
+
         return create_default_memory()
 
 
 def save_memory(memory):
-    with open(
-        MEMORY_FILE,
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            memory,
-            file,
-            indent=4,
-            ensure_ascii=False,
+    """
+    Atomic memory write.
+
+    The main memory file is replaced only after the
+    temporary JSON file has been successfully written.
+    """
+
+    memory = normalize_memory(memory)
+
+    temp_file = MEMORY_FILE.with_suffix(".tmp")
+
+    try:
+
+        with open(
+            temp_file,
+            "w",
+            encoding="utf-8",
+        ) as file:
+
+            json.dump(
+                memory,
+                file,
+                indent=4,
+                ensure_ascii=False,
+            )
+
+            file.flush()
+            os.fsync(file.fileno())
+
+        os.replace(
+            temp_file,
+            MEMORY_FILE,
         )
+
+    except Exception:
+
+        try:
+
+            if temp_file.exists():
+                temp_file.unlink()
+
+        except OSError:
+            pass
+
+        raise
 
 
 MEMORY = load_memory()
@@ -195,6 +286,8 @@ MEMORY = load_memory()
 
 
 def is_ignored(path):
+    path = Path(path)
+
     return any(part in IGNORED_PARTS for part in path.parts)
 
 
@@ -203,6 +296,7 @@ def scan_project():
     folders = set()
 
     for root, dirnames, filenames in os.walk(PROJECT_ROOT):
+
         root_path = Path(root)
 
         dirnames[:] = [name for name in dirnames if name not in IGNORED_PARTS]
@@ -211,16 +305,23 @@ def scan_project():
             continue
 
         for dirname in dirnames:
+
             folder_path = root_path / dirname
 
             if not is_ignored(folder_path):
+
                 folders.add(folder_path)
 
         for filename in filenames:
+
             file_path = root_path / filename
 
             if not is_ignored(file_path):
+
                 files.append(file_path)
+
+    files.sort()
+    folders = sorted(folders)
 
     return files, folders
 
@@ -235,12 +336,14 @@ def check_python_syntax(files):
     checked = 0
 
     for file_path in files:
-        if file_path.suffix.lower() not in PYTHON_EXTENSIONS:
+
+        if file_path.suffix.lower() != ".py":
             continue
 
         checked += 1
 
         try:
+
             source = file_path.read_text(encoding="utf-8-sig")
 
             compile(
@@ -250,9 +353,10 @@ def check_python_syntax(files):
             )
 
         except SyntaxError as error:
+
             errors.append(
                 {
-                    "file": str(file_path.relative_to(PROJECT_ROOT)),
+                    "file": relative_path(file_path),
                     "line": error.lineno,
                     "column": error.offset,
                     "message": error.msg,
@@ -260,23 +364,36 @@ def check_python_syntax(files):
             )
 
         except UnicodeDecodeError as error:
+
             errors.append(
                 {
-                    "file": str(file_path.relative_to(PROJECT_ROOT)),
+                    "file": relative_path(file_path),
                     "line": None,
                     "column": None,
-                    "message": (f"Unicode decode error: {error}"),
+                    "message": ("Unicode decode error: " f"{error}"),
+                }
+            )
+
+        except OSError as error:
+
+            errors.append(
+                {
+                    "file": relative_path(file_path),
+                    "line": None,
+                    "column": None,
+                    "message": ("File read error: " f"{error}"),
                 }
             )
 
     MEMORY["syntax_errors"] = errors
+
     save_memory(MEMORY)
 
     return checked, errors
 
 
 # ============================================================
-# IMPORT ANALYSIS
+# AST IMPORT ANALYSIS
 # ============================================================
 
 
@@ -285,10 +402,12 @@ def check_python_imports(files):
     errors = []
 
     for file_path in files:
-        if file_path.suffix.lower() not in PYTHON_EXTENSIONS:
+
+        if file_path.suffix.lower() != ".py":
             continue
 
         try:
+
             source = file_path.read_text(encoding="utf-8-sig")
 
             tree = ast.parse(
@@ -300,40 +419,89 @@ def check_python_imports(files):
 
             for node in ast.walk(tree):
 
-                if isinstance(node, ast.Import):
+                if isinstance(
+                    node,
+                    ast.Import,
+                ):
+
                     for item in node.names:
-                        imports.append(item.name)
+
+                        imports.append(
+                            {
+                                "type": "import",
+                                "module": item.name,
+                            }
+                        )
 
                 elif isinstance(
                     node,
                     ast.ImportFrom,
                 ):
-                    module = node.module or ""
-                    imports.append(module)
 
-            relative_name = str(file_path.relative_to(PROJECT_ROOT))
+                    imports.append(
+                        {
+                            "type": "from",
+                            "module": (node.module or ""),
+                            "level": node.level,
+                        }
+                    )
 
-            results.append(
-                {
-                    "file": relative_name,
-                    "imports": imports,
-                    "count": len(imports),
-                }
-            )
+            result = {
+                "file": relative_path(file_path),
+                "imports": imports,
+                "count": len(imports),
+            }
+
+            results.append(result)
 
             print(f"📦 {file_path.name}: " f"{len(imports)} imports")
 
         except Exception as error:
-            relative_name = str(file_path.relative_to(PROJECT_ROOT))
 
             errors.append(
                 {
-                    "file": relative_name,
+                    "file": relative_path(file_path),
                     "message": str(error),
                 }
             )
 
     MEMORY["import_checks"] = results
+
+    save_memory(MEMORY)
+
+    return results, errors
+
+
+# ============================================================
+# RUNTIME IMPORT CHECK
+#
+# IMPORTANT:
+# Project files are NOT executed here.
+# ============================================================
+
+
+def check_runtime_imports(files):
+    results = []
+    errors = []
+
+    python_files = [path for path in files if path.suffix.lower() == ".py"]
+
+    for file_path in python_files:
+
+        result = {
+            "file": relative_path(file_path),
+            "status": "not_executed",
+            "message": (
+                "Runtime execution skipped "
+                "for safety. AST import analysis "
+                "completed."
+            ),
+        }
+
+        results.append(result)
+
+    MEMORY["import_runtime_checks"] = results
+
     save_memory(MEMORY)
 
     return results, errors
@@ -346,18 +514,18 @@ def check_python_imports(files):
 
 def health_check():
     try:
-        python_version = platform.python_version()
-        operating_system = platform.system()
-        machine = platform.machine()
 
         return {
             "status": "healthy",
-            "python": python_version,
-            "os": operating_system,
-            "machine": machine,
+            "python": platform.python_version(),
+            "os": platform.system(),
+            "machine": platform.machine(),
+            "project_exists": PROJECT_ROOT.exists(),
+            "memory_file": MEMORY_FILE.exists(),
         }
 
     except Exception as error:
+
         return {
             "status": "unhealthy",
             "error": str(error),
@@ -369,30 +537,39 @@ def health_check():
 # ============================================================
 
 
-def safe_auto_fix(files, syntax_errors):
+def safe_auto_fix(
+    files,
+    syntax_errors,
+):
+    """
+    Conservative formatting cleanup only.
+
+    This function NEVER claims to repair arbitrary
+    Python syntax errors.
+    """
+
     fixes = []
 
     if not syntax_errors:
+
         print("✅ No syntax errors require fixing.")
+
         return fixes
 
     error_files = {item["file"] for item in syntax_errors if item.get("file")}
 
     for file_path in files:
-        relative_name = str(file_path.relative_to(PROJECT_ROOT))
 
-        if relative_name not in error_files:
-            continue
+        relative_name = relative_path(file_path)
 
-        if file_path.suffix.lower() != ".py":
+        if relative_name not in error_files or file_path.suffix.lower() != ".py":
             continue
 
         try:
+
             original = file_path.read_text(encoding="utf-8-sig")
 
-            fixed = original
-
-            fixed = fixed.replace(
+            fixed = original.replace(
                 "\r\n",
                 "\n",
             )
@@ -402,6 +579,7 @@ def safe_auto_fix(files, syntax_errors):
             fixed = fixed.rstrip("\n") + "\n"
 
             if fixed != original:
+
                 file_path.write_text(
                     fixed,
                     encoding="utf-8",
@@ -410,23 +588,74 @@ def safe_auto_fix(files, syntax_errors):
                 fixes.append(
                     {
                         "file": relative_name,
-                        "type": "safe_format_cleanup",
+                        "type": ("safe_format_cleanup"),
+                        "timestamp": now_iso(),
                     }
                 )
 
         except Exception as error:
+
             fixes.append(
                 {
                     "file": relative_name,
                     "type": "fix_failed",
                     "error": str(error),
+                    "timestamp": now_iso(),
                 }
             )
 
     MEMORY["fixes"].extend(fixes)
+
     save_memory(MEMORY)
 
     return fixes
+
+
+# ============================================================
+# POST-FIX VALIDATION
+# ============================================================
+
+
+def revalidate_after_fixes(files):
+    print("\n🔎 Re-validating project " "after safe fixes...")
+
+    checked, syntax_errors = check_python_syntax(files)
+
+    print(f"🐍 Python files re-checked: " f"{checked}")
+
+    if syntax_errors:
+
+        print("❌ Syntax errors after fixes: " f"{len(syntax_errors)}")
+
+        for error in syntax_errors[:20]:
+
+            print(
+                f"   ❌ {error.get('file')} "
+                f"line {error.get('line')}: "
+                f"{error.get('message')}"
+            )
+
+    else:
+
+        print("✅ Re-validation passed. " "No Python syntax errors.")
+
+    import_results, import_errors = check_python_imports(files)
+
+    (
+        runtime_import_results,
+        runtime_import_errors,
+    ) = check_runtime_imports(files)
+
+    combined_import_errors = import_errors + runtime_import_errors
+
+    print("📦 Import analysis errors " "after fixes: " f"{len(combined_import_errors)}")
+
+    return (
+        checked,
+        syntax_errors,
+        import_results,
+        combined_import_errors,
+    )
 
 
 # ============================================================
@@ -434,13 +663,17 @@ def safe_auto_fix(files, syntax_errors):
 # ============================================================
 
 
-def create_backup():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+def create_backup(reason="manual"):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
-    backup_path = BACKUP_DIR / f"backup_{timestamp}"
+    backup_path = BACKUP_DIR / f"backup_{timestamp}_{reason}"
 
     try:
-        BACKUP_DIR.mkdir(exist_ok=True)
+
+        BACKUP_DIR.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         shutil.copytree(
             PROJECT_ROOT,
@@ -452,19 +685,20 @@ def create_backup():
                 "venv",
                 "__pycache__",
                 ".apex_backups",
+                ".apex_remediation_logs",
             ),
         )
 
         record = {
+            "timestamp": now_iso(),
             "path": str(backup_path),
-            "type": "pre_release_backup",
+            "reason": reason,
+            "developer_version": VERSION,
         }
 
-        MEMORY["backups"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "backups",
+            record,
         )
 
         save_memory(MEMORY)
@@ -474,25 +708,24 @@ def create_backup():
         return backup_path
 
     except Exception as error:
+
         print(f"❌ Backup failed: {error}")
 
         return None
 
 
 # ============================================================
-# TERMINAL
+# COMMAND SECURITY
 # ============================================================
 
 
 def command_is_blocked(command):
     normalized = command.strip().lower()
 
-    for blocked in BLOCKED_COMMANDS:
-
-        if normalized == blocked.strip() or normalized.startswith(blocked):
-            return True
-
-    return False
+    return any(
+        normalized == blocked.strip() or normalized.startswith(blocked)
+        for blocked in BLOCKED_COMMANDS
+    )
 
 
 def command_is_safe(command):
@@ -516,17 +749,20 @@ def run_terminal_command(
     print(f"Command: {command}")
 
     if command_is_blocked(command):
-        print("⛔ Command is blocked " "by APEX safety policy.")
+
+        print("⛔ Command blocked by " "APEX safety policy.")
 
         return {
             "success": False,
             "blocked": True,
+            "requires_approval": False,
             "output": "",
             "error": "Blocked command",
         }
 
     if not command_is_safe(command) and not allow_unsafe:
-        print("🛡️ Command requires approval.")
+
+        print("🛡️ Command requires " "explicit approval.")
 
         return {
             "success": False,
@@ -537,6 +773,7 @@ def run_terminal_command(
         }
 
     try:
+
         result = subprocess.run(
             command,
             cwd=PROJECT_ROOT,
@@ -546,76 +783,83 @@ def run_terminal_command(
             timeout=timeout,
         )
 
-        output = (result.stdout or "").strip()
+        output = trim_text(result.stdout)
 
-        error = (result.stderr or "").strip()
-
-        print("✅ Command completed.")
-
-        if output:
-            print("📤 OUTPUT:")
-            print(output)
-
-        if error:
-            print("📥 ERROR:")
-            print(error)
+        error = trim_text(result.stderr)
 
         record = {
+            "timestamp": now_iso(),
             "command": command,
-            "return_code": result.returncode,
-            "success": result.returncode == 0,
-            "output": output[-10000:],
-            "error": error[-10000:],
+            "return_code": (result.returncode),
+            "success": (result.returncode == 0),
+            "output": output,
+            "error": error,
         }
 
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "terminal_commands",
+            record,
         )
 
         save_memory(MEMORY)
 
+        if result.returncode == 0:
+
+            print("✅ Command completed.")
+
+        else:
+
+            print("⚠️ Command returned code " f"{result.returncode}.")
+
+        if output:
+
+            print("📤 OUTPUT:")
+            print(output)
+
+        if error:
+
+            print("📥 ERROR:")
+            print(error)
+
         return record
 
     except subprocess.TimeoutExpired:
-        print("⏱️ Command timed out.")
 
         record = {
+            "timestamp": now_iso(),
             "command": command,
             "success": False,
             "error": "Command timed out",
         }
 
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "terminal_commands",
+            record,
         )
 
         save_memory(MEMORY)
 
+        print("⏱️ Command timed out.")
+
         return record
 
     except Exception as error:
-        print(f"❌ Terminal error: {error}")
 
         record = {
+            "timestamp": now_iso(),
             "command": command,
             "success": False,
             "error": str(error),
         }
 
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "terminal_commands",
+            record,
         )
 
         save_memory(MEMORY)
+
+        print(f"❌ Terminal error: {error}")
 
         return record
 
@@ -628,10 +872,7 @@ def run_terminal_command(
 def detect_vscode():
     result = run_terminal_command("where code")
 
-    if result.get("success") and result.get("output"):
-        return True
-
-    return False
+    return bool(result.get("success") and result.get("output"))
 
 
 # ============================================================
@@ -653,27 +894,28 @@ def release_git_check():
         "git_branch": bool(branch.get("success")),
         "git_log": bool(log.get("success")),
         "clean_worktree": False,
-        "has_remote_push": False,
+        "automatic_push": False,
     }
 
     if status.get("success"):
+
         output = status.get(
             "output",
             "",
         ).lower()
 
-        clean_markers = [
-            "nothing to commit, working tree clean",
-            "working tree clean",
-        ]
+        checks["clean_worktree"] = (
+            "working tree clean" in output or "nothing to commit" in output
+        )
 
-        checks["clean_worktree"] = any(marker in output for marker in clean_markers)
+    record = {
+        "timestamp": now_iso(),
+        **checks,
+    }
 
-    MEMORY["release_checks"].append(
-        {
-            "timestamp": datetime.now().isoformat(),
-            **checks,
-        }
+    remember(
+        "release_checks",
+        record,
     )
 
     save_memory(MEMORY)
@@ -693,14 +935,13 @@ def create_release_manifest(
     import_errors,
 ):
     python_files = [
-        str(path.relative_to(PROJECT_ROOT))
-        for path in files
-        if path.suffix.lower() == ".py"
+        relative_path(path) for path in files if path.suffix.lower() == ".py"
     ]
 
     manifest = {
+        "schema_version": 2,
         "developer_version": VERSION,
-        "created_at": datetime.now().isoformat(),
+        "created_at": now_iso(),
         "project": PROJECT_ROOT.name,
         "python_files": python_files,
         "python_file_count": len(python_files),
@@ -712,17 +953,25 @@ def create_release_manifest(
             "automatic_production_change": False,
             "automatic_delete": False,
             "automatic_package_update": False,
+            "automatic_destructive_action": False,
+        },
+        "future_step_policy": {
+            "requires_validation": True,
+            "requires_backup": True,
+            "requires_explicit_gate": True,
         },
     }
 
-    manifest_file = PROJECT_ROOT / "apex_release_manifest.json"
-
     try:
+
+        temp_file = MANIFEST_FILE.with_suffix(".tmp")
+
         with open(
-            manifest_file,
+            temp_file,
             "w",
             encoding="utf-8",
         ) as file:
+
             json.dump(
                 manifest,
                 file,
@@ -730,12 +979,22 @@ def create_release_manifest(
                 ensure_ascii=False,
             )
 
-        print("📄 Release manifest created: " f"{manifest_file.name}")
+            file.flush()
 
-        return manifest_file
+            os.fsync(file.fileno())
+
+        os.replace(
+            temp_file,
+            MANIFEST_FILE,
+        )
+
+        print("📄 Release manifest created: " f"{MANIFEST_FILE.name}")
+
+        return MANIFEST_FILE
 
     except OSError as error:
-        print("❌ Could not create " f"release manifest: {error}")
+
+        print("❌ Could not create manifest: " f"{error}")
 
         return None
 
@@ -751,10 +1010,9 @@ def prepare_release(
     syntax_errors,
     import_errors,
 ):
-    print("\n📦 Preparing safe release package...")
+    print("\n📦 Preparing safe release...")
 
     if syntax_errors:
-        print("⛔ Release preparation stopped: " "Python syntax errors exist.")
 
         return {
             "prepared": False,
@@ -762,25 +1020,22 @@ def prepare_release(
         }
 
     if import_errors:
-        print("⛔ Release preparation stopped: " "import analysis errors exist.")
 
         return {
             "prepared": False,
-            "reason": "import_analysis_errors",
+            "reason": ("import_analysis_errors"),
         }
 
     if health.get("status") != "healthy":
-        print("⛔ Release preparation stopped: " "health check failed.")
 
         return {
             "prepared": False,
-            "reason": "health_check_failed",
+            "reason": ("health_check_failed"),
         }
 
-    backup_path = create_backup()
+    backup_path = create_backup(reason="release")
 
     if backup_path is None:
-        print("⛔ Release preparation stopped: " "backup failed.")
 
         return {
             "prepared": False,
@@ -795,6 +1050,7 @@ def prepare_release(
     )
 
     if manifest_file is None:
+
         return {
             "prepared": False,
             "reason": "manifest_failed",
@@ -808,45 +1064,44 @@ def prepare_release(
         "production_change": False,
     }
 
-    MEMORY["release_preparations"].append(
+    remember(
+        "release_preparations",
         {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_iso(),
             **result,
-        }
+        },
     )
 
     save_memory(MEMORY)
 
-    print("✅ Safe release preparation completed.")
+    print("✅ Safe release preparation " "completed.")
 
-    print("🛡️ No Git push was performed.")
+    print("🛡️ Git push: NOT performed.")
 
-    print("🛡️ No production change was performed.")
+    print("🛡️ Production change: " "NOT performed.")
 
     return result
 
 
 # ============================================================
-# MONITORING - MEMORY / SYSTEM
+# SYSTEM MEMORY MONITORING
 # ============================================================
 
 
 def get_system_memory():
-    """
-    Reads Windows physical memory information
-    without requiring an additional package.
-    """
-
     if platform.system() != "Windows":
+
         return {
             "available": False,
-            "reason": "Windows-specific monitor",
+            "reason": ("Windows-specific monitor"),
         }
 
     try:
+
         import ctypes
 
         class MEMORYSTATUSEX(ctypes.Structure):
+
             _fields_ = [
                 (
                     "dwLength",
@@ -887,14 +1142,16 @@ def get_system_memory():
             ]
 
         status = MEMORYSTATUSEX()
+
         status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
 
         success = ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
 
         if not success:
+
             return {
                 "available": False,
-                "reason": ("GlobalMemoryStatusEx failed"),
+                "reason": ("GlobalMemoryStatusEx " "failed"),
             }
 
         total_gb = status.ullTotalPhys / (1024**3)
@@ -921,6 +1178,7 @@ def get_system_memory():
         }
 
     except Exception as error:
+
         return {
             "available": False,
             "reason": str(error),
@@ -928,12 +1186,13 @@ def get_system_memory():
 
 
 # ============================================================
-# MONITORING - DISK
+# DISK MONITORING
 # ============================================================
 
 
 def get_disk_health():
     try:
+
         usage = shutil.disk_usage(PROJECT_ROOT)
 
         total_gb = usage.total / (1024**3)
@@ -965,6 +1224,7 @@ def get_disk_health():
         }
 
     except Exception as error:
+
         return {
             "available": False,
             "reason": str(error),
@@ -972,23 +1232,17 @@ def get_disk_health():
 
 
 # ============================================================
-# MONITORING - LOG FILES
+# LOG MONITORING
 # ============================================================
 
 
 def find_log_files(files):
-    log_files = []
-
-    for file_path in files:
-        if file_path.suffix.lower() in MONITORING_LOG_EXTENSIONS:
-            log_files.append(file_path)
-
-    return log_files
+    return [path for path in files if path.suffix.lower() in MONITORING_LOG_EXTENSIONS]
 
 
 def analyze_log_file(file_path):
     result = {
-        "file": str(file_path.relative_to(PROJECT_ROOT)),
+        "file": relative_path(file_path),
         "errors": 0,
         "warnings": 0,
         "critical": 0,
@@ -996,11 +1250,14 @@ def analyze_log_file(file_path):
     }
 
     try:
+
         if file_path.stat().st_size > MAX_LOG_READ_SIZE:
+
             with open(
                 file_path,
                 "rb",
             ) as file:
+
                 file.seek(
                     -MAX_LOG_READ_SIZE,
                     os.SEEK_END,
@@ -1010,25 +1267,34 @@ def analyze_log_file(file_path):
                     "utf-8",
                     errors="replace",
                 )
+
         else:
+
             content = file_path.read_text(
                 encoding="utf-8",
                 errors="replace",
             )
 
-        for line_number, line in enumerate(
+        for (
+            line_number,
+            line,
+        ) in enumerate(
             content.splitlines(),
             start=1,
         ):
+
             normalized = line.lower()
 
             if any(keyword in normalized for keyword in ERROR_KEYWORDS):
+
                 result["errors"] += 1
 
                 if "critical" in normalized or "fatal" in normalized:
+
                     result["critical"] += 1
 
                 if len(result["matches"]) < 20:
+
                     result["matches"].append(
                         {
                             "line": line_number,
@@ -1038,9 +1304,11 @@ def analyze_log_file(file_path):
                     )
 
             elif any(keyword in normalized for keyword in WARNING_KEYWORDS):
+
                 result["warnings"] += 1
 
                 if len(result["matches"]) < 20:
+
                     result["matches"].append(
                         {
                             "line": line_number,
@@ -1052,7 +1320,9 @@ def analyze_log_file(file_path):
         return result
 
     except Exception as error:
+
         result["read_error"] = str(error)
+
         return result
 
 
@@ -1069,58 +1339,65 @@ def build_monitoring_alerts(
     alerts = []
 
     if memory_health.get("available"):
-        memory_load = memory_health.get(
+
+        load = memory_health.get(
             "load_percent",
             0,
         )
 
-        if memory_load >= 90:
+        if load >= 90:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "memory",
-                    "message": ("Physical memory usage " "is very high."),
-                    "value": memory_load,
+                    "message": ("Physical memory " "usage is very high."),
+                    "value": load,
                 }
             )
 
-        elif memory_load >= 80:
+        elif load >= 80:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "memory",
-                    "message": ("Physical memory usage " "is high."),
-                    "value": memory_load,
+                    "message": ("Physical memory " "usage is high."),
+                    "value": load,
                 }
             )
 
     if disk_health.get("available"):
-        disk_load = disk_health.get(
+
+        load = disk_health.get(
             "used_percent",
             0,
         )
 
-        if disk_load >= 95:
+        if load >= 95:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "disk",
-                    "message": ("Disk usage is critically high."),
-                    "value": disk_load,
+                    "message": ("Disk usage is " "critically high."),
+                    "value": load,
                 }
             )
 
-        elif disk_load >= 90:
+        elif load >= 90:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "disk",
                     "message": ("Disk usage is high."),
-                    "value": disk_load,
+                    "value": load,
                 }
             )
 
     for result in log_results:
+
         critical_count = result.get(
             "critical",
             0,
@@ -1137,34 +1414,37 @@ def build_monitoring_alerts(
         )
 
         if critical_count > 0:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Critical entries detected " "in application log."),
+                    "message": ("Critical log entries " "detected."),
                     "value": critical_count,
                 }
             )
 
         elif error_count > 0:
+
             alerts.append(
                 {
                     "level": "error",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Error entries detected " "in application log."),
+                    "message": ("Error log entries " "detected."),
                     "value": error_count,
                 }
             )
 
         elif warning_count > 0:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Warning entries detected " "in application log."),
+                    "message": ("Warning log entries " "detected."),
                     "value": warning_count,
                 }
             )
@@ -1173,7 +1453,7 @@ def build_monitoring_alerts(
 
 
 # ============================================================
-# PRODUCTION MONITORING
+# STEP 6 - PRODUCTION MONITORING
 # ============================================================
 
 
@@ -1191,12 +1471,7 @@ def run_production_monitoring(
 
     log_files = find_log_files(files)
 
-    log_results = []
-
-    for log_file in log_files:
-        result = analyze_log_file(log_file)
-
-        log_results.append(result)
+    log_results = [analyze_log_file(path) for path in log_files]
 
     alerts = build_monitoring_alerts(
         memory_health,
@@ -1209,22 +1484,27 @@ def run_production_monitoring(
         3,
     )
 
-    monitoring_status = "healthy"
+    status = "healthy"
 
-    if any(alert["level"] == "critical" for alert in alerts):
-        monitoring_status = "critical"
+    levels = {alert["level"] for alert in alerts}
 
-    elif any(alert["level"] == "error" for alert in alerts):
-        monitoring_status = "error"
+    if "critical" in levels:
 
-    elif any(alert["level"] == "warning" for alert in alerts):
-        monitoring_status = "warning"
+        status = "critical"
+
+    elif "error" in levels:
+
+        status = "error"
+
+    elif "warning" in levels:
+
+        status = "warning"
 
     result = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now_iso(),
         "developer_version": VERSION,
         "duration_seconds": duration,
-        "status": monitoring_status,
+        "status": status,
         "application_health": health,
         "memory": memory_health,
         "disk": disk_health,
@@ -1234,153 +1514,619 @@ def run_production_monitoring(
         "automatic_action": False,
     }
 
-    MEMORY["monitoring_history"].append(result)
+    remember(
+        "monitoring_history",
+        result,
+    )
 
     MEMORY["monitoring_alerts"].extend(alerts)
-
-    MEMORY["monitoring_history"] = MEMORY["monitoring_history"][-100:]
 
     MEMORY["monitoring_alerts"] = MEMORY["monitoring_alerts"][-200:]
 
     save_memory(MEMORY)
 
-    print(f"❤️ Monitoring status: " f"{monitoring_status}")
+    print(f"❤️ Monitoring status: " f"{status}")
 
     if memory_health.get("available"):
+
         print("🧠 Memory usage: " f"{memory_health['load_percent']}%")
 
     if disk_health.get("available"):
+
         print("💽 Disk usage: " f"{disk_health['used_percent']}%")
 
-    print(f"📝 Log files checked: " f"{len(log_files)}")
+    print("📝 Log files checked: " f"{len(log_files)}")
 
-    print(f"🚨 Alerts detected: " f"{len(alerts)}")
-
-    if alerts:
-        for alert in alerts:
-            print(f"   [{alert['level'].upper()}] " f"{alert['message']}")
-
-    else:
-        print("✅ No monitoring alerts detected.")
-
-    print("🛡️ Automatic production action: " "DISABLED")
+    print("🚨 Alerts detected: " f"{len(alerts)}")
 
     return result
 
 
 # ============================================================
-# MAIN
+# STEP 7 - SAFE SELF-HEALING
+# ============================================================
+
+
+def remediate_disk_space():
+    """
+    Only removes generated Python cache files.
+
+    No user files, source files, databases,
+    logs, or Git files are deleted.
+    """
+
+    cleaned_bytes = 0
+    removed_items = 0
+
+    try:
+
+        for root, dirs, _ in os.walk(PROJECT_ROOT):
+
+            if "__pycache__" not in dirs:
+                continue
+
+            cache_path = Path(root) / "__pycache__"
+
+            for item in cache_path.iterdir():
+
+                try:
+
+                    if item.is_file():
+
+                        cleaned_bytes += item.stat().st_size
+
+                        item.unlink()
+
+                        removed_items += 1
+
+                except Exception:
+                    pass
+
+        return {
+            "type": ("python_cache_cleanup"),
+            "status": "success",
+            "cleaned_bytes": (cleaned_bytes),
+            "removed_items": (removed_items),
+            "message": ("Python cache cleanup " "completed."),
+        }
+
+    except Exception as error:
+
+        return {
+            "type": ("python_cache_cleanup"),
+            "status": "failed",
+            "error": str(error),
+        }
+
+
+def auto_remediate_alerts(
+    monitoring_result,
+):
+    print("\n🩹 APEX Self-Healing Engine...")
+
+    remediation_actions = []
+
+    alerts = monitoring_result.get(
+        "alerts",
+        [],
+    )
+
+    if not alerts:
+
+        print("✅ No alerts requiring " "remediation.")
+
+        return remediation_actions
+
+    for alert in alerts:
+
+        alert_type = alert.get("type")
+
+        level = alert.get("level")
+
+        if alert_type == "disk" and level in {
+            "warning",
+            "critical",
+        }:
+
+            action = remediate_disk_space()
+
+            remediation_actions.append(action)
+
+        elif alert_type == "memory" and level in {
+            "warning",
+            "critical",
+        }:
+
+            remediation_actions.append(
+                {
+                    "type": "memory_alert",
+                    "status": "observed",
+                    "message": (
+                        "Memory pressure "
+                        "detected. No unsafe "
+                        "automatic action "
+                        "was performed."
+                    ),
+                }
+            )
+
+        elif alert_type == "log":
+
+            remediation_actions.append(
+                {
+                    "type": "log_alert",
+                    "status": "observed",
+                    "file": alert.get("file"),
+                    "message": (
+                        "Log alert recorded. " "Automatic log reset " "is disabled."
+                    ),
+                }
+            )
+
+    record = {
+        "timestamp": now_iso(),
+        "actions_count": len(remediation_actions),
+        "details": remediation_actions,
+    }
+
+    remember(
+        "remediations",
+        record,
+    )
+
+    save_memory(MEMORY)
+
+    print(
+        "✅ Self-Healing analysis " "completed: " f"{len(remediation_actions)} actions."
+    )
+
+    return remediation_actions
+
+
+# ============================================================
+# STEP 8 - ORCHESTRATION
+# ============================================================
+
+
+def run_autonomous_orchestrator(
+    files,
+    health,
+    syntax_errors,
+    import_errors,
+    monitoring_result,
+    remediation_result,
+    release_result,
+):
+    print("\n" + "=" * 60)
+
+    print("🚀 APEX STEP 8")
+
+    print("Autonomous Orchestration Gate")
+
+    print("=" * 60)
+
+    ready_for_release = (
+        health.get("status") == "healthy"
+        and len(syntax_errors) == 0
+        and len(import_errors) == 0
+        and release_result.get(
+            "prepared",
+            False,
+        )
+    )
+
+    monitoring_safe = monitoring_result.get("status") not in {
+        "critical",
+        "error",
+    }
+
+    release_ready = ready_for_release and monitoring_safe
+
+    result = {
+        "timestamp": now_iso(),
+        "developer_version": VERSION,
+        "ready_for_release": (release_ready),
+        "syntax_errors": len(syntax_errors),
+        "import_errors": len(import_errors),
+        "remediations_observed": len(remediation_result),
+        "monitoring_status": (monitoring_result.get("status")),
+        "release_prepared": (
+            release_result.get(
+                "prepared",
+                False,
+            )
+        ),
+        "deployment_performed": False,
+        "production_changed": False,
+        "git_push_performed": False,
+    }
+
+    if release_ready:
+
+        result["status"] = "READY_FOR_DEPLOYMENT"
+
+        print("\n✅ All safety gates passed.")
+
+        print("🛡️ System is READY for a " "future deployment stage.")
+
+        print("🛑 Actual deployment was " "NOT performed.")
+
+    else:
+
+        result["status"] = "DEPLOYMENT_BLOCKED"
+
+        print("\n⛔ Deployment gate blocked.")
+
+    remember(
+        "deployments",
+        result,
+    )
+
+    save_memory(MEMORY)
+
+    return result
+
+
+# ============================================================
+# PIPELINE STATE
+# ============================================================
+
+
+def build_pipeline_state(
+    files,
+    folders,
+    syntax_errors,
+    import_errors,
+    health,
+    monitoring_result,
+    remediation_result,
+    deployment_result,
+):
+    return {
+        "developer_version": VERSION,
+        "timestamp": now_iso(),
+        "project": {
+            "root": str(PROJECT_ROOT),
+            "files": len(files),
+            "folders": len(folders),
+        },
+        "validation": {
+            "syntax_errors": len(syntax_errors),
+            "import_analysis_errors": len(import_errors),
+            "health": health.get("status"),
+        },
+        "monitoring": {
+            "status": (monitoring_result.get("status")),
+            "alerts": len(
+                monitoring_result.get(
+                    "alerts",
+                    [],
+                )
+            ),
+        },
+        "remediation": {
+            "actions": len(remediation_result),
+        },
+        "deployment_gate": {
+            "status": (deployment_result.get("status")),
+            "performed": (
+                deployment_result.get(
+                    "deployment_performed",
+                    False,
+                )
+            ),
+        },
+        "next_stage_ready": (deployment_result.get("status") == "READY_FOR_DEPLOYMENT"),
+    }
+
+
+# ============================================================
+# STEP 9 - CONTROLLED CHANGE ENGINE
+#
+# This stage creates a validated change plan.
+#
+# It DOES NOT:
+# - edit source files automatically
+# - delete source files
+# - push to Git
+# - deploy to production
+#
+# Future controlled changes must pass:
+# backup -> approval -> change -> validation -> rollback if failed
+# ============================================================
+
+
+def build_change_plan(
+    files,
+    health,
+    syntax_errors,
+    import_errors,
+    monitoring_result,
+    deployment_result,
+):
+    python_files = [
+        relative_path(path) for path in files if path.suffix.lower() == ".py"
+    ]
+
+    gates = {
+        "health": (health.get("status") == "healthy"),
+        "syntax_clean": (len(syntax_errors) == 0),
+        "imports_clean": (len(import_errors) == 0),
+        "monitoring_safe": (
+            monitoring_result.get("status")
+            not in {
+                "critical",
+                "error",
+            }
+        ),
+        "deployment_gate_ready": (
+            deployment_result.get("status") == "READY_FOR_DEPLOYMENT"
+        ),
+    }
+
+    plan_status = "READY_FOR_APPROVAL" if all(gates.values()) else "BLOCKED"
+
+    plan = {
+        "schema_version": 1,
+        "developer_version": VERSION,
+        "created_at": now_iso(),
+        "stage": ("STEP_9_CONTROLLED_CHANGE_ENGINE"),
+        "status": plan_status,
+        "project": PROJECT_ROOT.name,
+        "python_files": python_files,
+        "gates": gates,
+        "requested_changes": [],
+        "policy": {
+            "automatic_source_edit": False,
+            "automatic_delete": False,
+            "automatic_git_push": False,
+            "automatic_production_change": False,
+            "requires_explicit_approval": True,
+            "requires_backup_before_change": True,
+            "requires_post_change_validation": True,
+            "rollback_required_on_failed_validation": True,
+        },
+        "message": (
+            "Step 9 creates a controlled "
+            "change plan. No source code "
+            "is modified by this stage."
+        ),
+    }
+
+    try:
+
+        temp_file = CHANGE_PLAN_FILE.with_suffix(".tmp")
+
+        with open(
+            temp_file,
+            "w",
+            encoding="utf-8",
+        ) as file:
+
+            json.dump(
+                plan,
+                file,
+                indent=4,
+                ensure_ascii=False,
+            )
+
+            file.flush()
+
+            os.fsync(file.fileno())
+
+        os.replace(
+            temp_file,
+            CHANGE_PLAN_FILE,
+        )
+
+    except OSError as error:
+
+        plan["status"] = "BLOCKED"
+
+        plan["write_error"] = str(error)
+
+    remember(
+        "change_plans",
+        plan,
+    )
+
+    save_memory(MEMORY)
+
+    print("\n" + "=" * 60)
+
+    print("🧠 STEP 9 - CONTROLLED " "CHANGE ENGINE")
+
+    print("=" * 60)
+
+    print("📋 Change plan: " f"{plan['status']}")
+
+    print("🛡️ Automatic source edit: False")
+
+    print("🛡️ Automatic Git push: False")
+
+    print("🛡️ Automatic production " "change: False")
+
+    print("🔐 Explicit approval required: " "True")
+
+    print("📄 Plan file: " f"{CHANGE_PLAN_FILE.name}")
+
+    return plan
+
+
+# ============================================================
+# FINAL PIPELINE STATE
+# ============================================================
+
+
+def build_final_pipeline_state(
+    pipeline_state,
+    release_result,
+    change_plan,
+):
+    pipeline_state["release_prepared"] = release_result.get(
+        "prepared",
+        False,
+    )
+
+    pipeline_state["step_9"] = {
+        "status": change_plan.get("status"),
+        "plan_file": str(CHANGE_PLAN_FILE),
+        "source_modified": False,
+        "approval_required": True,
+    }
+
+    pipeline_state["next_stage_ready"] = (
+        change_plan.get("status") == "READY_FOR_APPROVAL"
+    )
+
+    return pipeline_state
+
+
+# ============================================================
+# MAIN PIPELINE
 # ============================================================
 
 
 def main():
-    print("=" * 50)
-    print("🤖 APEX AI DEVELOPER")
-    print("📌 Step 6 - Production Monitoring")
-    print("=" * 50)
+    pipeline_start = time.time()
 
-    print(f"📁 Project: {PROJECT_ROOT}")
+    print("=" * 60)
+
+    print("🤖 APEX AI DEVELOPER")
+
+    print("📌 Stable Foundation - " "Steps 1 to 9")
 
     print(f"🧠 Version: {VERSION}")
 
-    print("\n🚀 Starting APEX Developer Step 6...")
+    print("=" * 60)
+
+    print(f"📁 Project: {PROJECT_ROOT}")
 
     # --------------------------------------------------------
-    # Project Scan
+    # STEP 1
     # --------------------------------------------------------
 
-    print("\n🔍 Scanning APEX project...")
+    print("\n" + "=" * 60)
+
+    print("STEP 1 - PROJECT SCAN")
+
+    print("=" * 60)
 
     files, folders = scan_project()
 
-    print(f"✅ Files found: {len(files)}")
+    print(f"✅ Files: {len(files)}")
 
-    print(f"📂 Folders found: {len(folders)}")
+    print(f"📂 Folders: {len(folders)}")
 
-    MEMORY["scans"].append(
+    remember(
+        "scans",
         {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_iso(),
             "files": len(files),
             "folders": len(folders),
             "version": VERSION,
-        }
+        },
     )
 
     save_memory(MEMORY)
 
     # --------------------------------------------------------
-    # Syntax
+    # STEP 2
     # --------------------------------------------------------
 
-    print("\n🐍 Checking Python syntax...")
+    print("\n" + "=" * 60)
+
+    print("STEP 2 - PYTHON VALIDATION")
+
+    print("=" * 60)
 
     checked, syntax_errors = check_python_syntax(files)
 
-    print(f"📊 Python files checked: " f"{checked}")
+    print(f"🐍 Python files checked: " f"{checked}")
 
     if syntax_errors:
-        print(f"❌ Python syntax errors: " f"{len(syntax_errors)}")
 
-        for error in syntax_errors:
-            print(
-                f"   {error['file']} - " f"line {error['line']}: " f"{error['message']}"
-            )
+        print(f"❌ Syntax errors: " f"{len(syntax_errors)}")
 
     else:
-        print("✅ No Python syntax errors found.")
+
+        print("✅ No Python syntax errors.")
 
     # --------------------------------------------------------
-    # Imports
+    # STEP 3
     # --------------------------------------------------------
 
-    print("\n📦 Checking Python imports...")
+    print("\n" + "=" * 60)
 
-    import_results, import_errors = check_python_imports(files)
+    print("STEP 3 - IMPORT ANALYSIS")
 
-    if import_errors:
-        print(f"❌ Import analysis errors: " f"{len(import_errors)}")
+    print("=" * 60)
 
-    else:
-        print("✅ Import analysis completed.")
+    (
+        import_results,
+        import_errors,
+    ) = check_python_imports(files)
+
+    (
+        runtime_import_results,
+        runtime_import_errors,
+    ) = check_runtime_imports(files)
+
+    combined_import_errors = import_errors + runtime_import_errors
+
+    print("📦 Import analysis errors: " f"{len(import_errors)}")
+
+    print("🧪 Runtime import checks: " f"{len(runtime_import_results)}")
+
+    print("⚠️ Runtime import errors: " f"{len(runtime_import_errors)}")
 
     # --------------------------------------------------------
-    # Health
+    # STEP 4
     # --------------------------------------------------------
 
-    print("\n❤️ APEX Health Check...")
+    print("\n" + "=" * 60)
+
+    print("STEP 4 - SYSTEM HEALTH")
+
+    print("=" * 60)
 
     health = health_check()
 
-    print(f"Status: {health.get('status')}")
+    print(f"❤️ Status: " f"{health.get('status')}")
 
-    print(f"Python: {health.get('python')}")
+    print(f"🐍 Python: " f"{health.get('python')}")
 
-    print(f"OS: {health.get('os')}")
+    print(f"🪟 OS: " f"{health.get('os')}")
 
-    print(f"Machine: {health.get('machine')}")
+    print(f"⚙️ Machine: " f"{health.get('machine')}")
 
     # --------------------------------------------------------
-    # Safe Auto-Fix
+    # STEP 5
     # --------------------------------------------------------
 
-    print("\n🛠️ APEX Safe Auto-Fix...")
+    print("\n" + "=" * 60)
+
+    print("STEP 5 - SAFE FIX + DIAGNOSTICS")
+
+    print("=" * 60)
 
     fixes = safe_auto_fix(
         files,
         syntax_errors,
     )
 
+    print(f"🛠️ Safe formatting fixes: " f"{len(fixes)}")
+
+    # IMPORTANT:
+    # If a fix happened, validation is run again.
     if fixes:
-        print(f"🛠️ Safe fixes applied: " f"{len(fixes)}")
 
-    else:
-        print("✅ No syntax errors require fixing.")
-
-    # --------------------------------------------------------
-    # Terminal Diagnostics
-    # --------------------------------------------------------
-
-    print("\n🔧 Running terminal diagnostics...")
+        (
+            checked,
+            syntax_errors,
+            import_results,
+            combined_import_errors,
+        ) = revalidate_after_fixes(files)
 
     diagnostics = []
 
@@ -1393,61 +2139,28 @@ def main():
     diagnostics.append(run_terminal_command("git status"))
 
     # --------------------------------------------------------
-    # VS Code
+    # STEP 5B - VS CODE
     # --------------------------------------------------------
 
-    print("\n🧩 Checking VS Code...")
+    print("\n" + "=" * 60)
+
+    print("STEP 5B - VS CODE")
+
+    print("=" * 60)
 
     vscode_detected = detect_vscode()
 
-    if vscode_detected:
-        print("🧩 VS Code detected.")
-
-    else:
-        print("ℹ️ VS Code command was not detected.")
+    print("🧩 VS Code detected: " f"{vscode_detected}")
 
     # --------------------------------------------------------
-    # Release Safety
+    # STEP 6
     # --------------------------------------------------------
 
-    release_checks = release_git_check()
+    print("\n" + "=" * 60)
 
-    print("\n📋 Release safety:")
+    print("STEP 6 - PRODUCTION MONITORING")
 
-    print(
-        "🌿 Git status check:",
-        "OK" if release_checks["git_status"] else "FAILED",
-    )
-
-    print(
-        "🌿 Git branch check:",
-        "OK" if release_checks["git_branch"] else "FAILED",
-    )
-
-    print(
-        "🌿 Git log check:",
-        "OK" if release_checks["git_log"] else "FAILED",
-    )
-
-    print(
-        "🧹 Working tree:",
-        "CLEAN" if release_checks["clean_worktree"] else "HAS CHANGES",
-    )
-
-    # --------------------------------------------------------
-    # Release Preparation
-    # --------------------------------------------------------
-
-    release_result = prepare_release(
-        files,
-        health,
-        syntax_errors,
-        import_errors,
-    )
-
-    # --------------------------------------------------------
-    # Step 6 Monitoring
-    # --------------------------------------------------------
+    print("=" * 60)
 
     monitoring_result = run_production_monitoring(
         files,
@@ -1455,53 +2168,172 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Final Report
+    # STEP 7
+    # --------------------------------------------------------
+
+    print("\n" + "=" * 60)
+
+    print("STEP 7 - SAFE SELF-HEALING")
+
+    print("=" * 60)
+
+    remediation_result = auto_remediate_alerts(monitoring_result)
+
+    # --------------------------------------------------------
+    # STEP 8
+    # --------------------------------------------------------
+
+    print("\n" + "=" * 60)
+
+    print("STEP 8 - RELEASE / " "DEPLOYMENT GATE")
+
+    print("=" * 60)
+
+    release_checks = release_git_check()
+
+    release_result = prepare_release(
+        files,
+        health,
+        syntax_errors,
+        combined_import_errors,
+    )
+
+    deployment_result = run_autonomous_orchestrator(
+        files,
+        health,
+        syntax_errors,
+        combined_import_errors,
+        monitoring_result,
+        remediation_result,
+        release_result,
+    )
+
+    # --------------------------------------------------------
+    # PIPELINE STATE
+    # --------------------------------------------------------
+
+    pipeline_state = build_pipeline_state(
+        files,
+        folders,
+        syntax_errors,
+        combined_import_errors,
+        health,
+        monitoring_result,
+        remediation_result,
+        deployment_result,
+    )
+
+    pipeline_state["release_prepared"] = release_result.get(
+        "prepared",
+        False,
+    )
+
+    pipeline_state["git"] = release_checks
+
+    pipeline_state["vscode"] = vscode_detected
+
+    pipeline_state["duration_seconds"] = round(
+        time.time() - pipeline_start,
+        3,
+    )
+
+    # --------------------------------------------------------
+    # STEP 9
+    # --------------------------------------------------------
+
+    print("\n" + "=" * 60)
+
+    print("STEP 9 - CONTROLLED " "CHANGE ENGINE")
+
+    print("=" * 60)
+
+    change_plan = build_change_plan(
+        files,
+        health,
+        syntax_errors,
+        combined_import_errors,
+        monitoring_result,
+        deployment_result,
+    )
+
+    pipeline_state = build_final_pipeline_state(
+        pipeline_state,
+        release_result,
+        change_plan,
+    )
+
+    pipeline_state["duration_seconds"] = round(
+        time.time() - pipeline_start,
+        3,
+    )
+
+    remember(
+        "pipeline_runs",
+        pipeline_state,
+    )
+
+    save_memory(MEMORY)
+
+    # --------------------------------------------------------
+    # FINAL REPORT
     # --------------------------------------------------------
 
     final_health = health_check()
 
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
 
-    print("📋 STEP 6 REPORT")
+    print("📋 APEX STEPS 1-9 FINAL REPORT")
 
-    print("=" * 50)
+    print("=" * 60)
 
     print(f"📁 Files: {len(files)}")
 
     print(f"📂 Folders: {len(folders)}")
 
-    print(f"🐍 Initial syntax errors: " f"{len(syntax_errors)}")
+    print(f"🐍 Syntax Errors: " f"{len(syntax_errors)}")
 
-    print(f"📦 Import errors: " f"{len(import_errors)}")
+    print(f"📦 Import Errors: " f"{len(combined_import_errors)}")
 
-    print(f"🛠️ Safe fixes applied: " f"{len(fixes)}")
+    print(f"🛠️ Safe Fixes: " f"{len(fixes)}")
 
-    print(f"🖥️ Terminal diagnostics: " f"{len(diagnostics)}")
+    print(f"🖥️ Diagnostics: " f"{len(diagnostics)}")
 
-    print(f"🧩 VS Code detected: " f"{vscode_detected}")
+    print(f"🧩 VS Code: " f"{vscode_detected}")
 
-    print(f"💾 Release backup: " f"{release_result.get('prepared', False)}")
+    print(f"📡 Monitoring: " f"{monitoring_result.get('status')}")
 
-    print(f"📡 Monitoring status: " f"{monitoring_result.get('status')}")
+    print(f"🚨 Alerts: " f"{len(monitoring_result.get('alerts', []))}")
 
-    print(f"🚨 Monitoring alerts: " f"{len(monitoring_result.get('alerts', []))}")
+    print(f"🩹 Remediation Actions: " f"{len(remediation_result)}")
 
-    print(f"❤️ Final health: " f"{final_health.get('status')}")
+    print(f"📦 Release Prepared: " f"{release_result.get('prepared', False)}")
 
-    print("🛡️ Automatic production action: DISABLED")
+    print(f"🎯 Deployment Gate: " f"{deployment_result.get('status')}")
 
-    if (
-        final_health.get("status") == "healthy"
-        and not syntax_errors
-        and not import_errors
-        and release_result.get("prepared")
-    ):
-        print("\n✅ STEP 6 COMPLETED SUCCESSFULLY.")
+    print(f"🧠 Step 9: " f"{change_plan.get('status')}")
+
+    print(f"❤️ Final Health: " f"{final_health.get('status')}")
+
+    print(f"⏱️ Duration: " f"{pipeline_state['duration_seconds']} sec")
+
+    if change_plan.get("status") == "READY_FOR_APPROVAL":
+
+        print("\n🟢 STEPS 1-9 FOUNDATION READY.")
+
+        print("🔐 Step 9 requires explicit " "approval before source changes.")
+
+        print("🛡️ No source change, Git push, " "or production deployment performed.")
 
     else:
-        print("\n⚠️ STEP 6 COMPLETED " "WITH CHECKS REQUIRED.")
 
-    print("=" * 50)
+        print("\n🟡 PIPELINE COMPLETED " "WITH CHECKS REQUIRED.")
+
+    print("=" * 60)
+
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-﻿import cv2
+import cv2
 import tkinter as tk
 from PIL import Image, ImageTk
 
@@ -15,6 +15,7 @@ root.geometry("960x720")
 label = tk.Label(root)
 label.pack(fill="both", expand=True)
 
+
 def update_frame():
     ret, frame = cap.read()
 
@@ -29,9 +30,11 @@ def update_frame():
 
     root.after(30, update_frame)
 
+
 def close():
     cap.release()
     root.destroy()
+
 
 root.protocol("WM_DELETE_WINDOW", close)
 update_frame()

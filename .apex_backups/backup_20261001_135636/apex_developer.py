@@ -4,21 +4,40 @@ import os
 import platform
 import shutil
 import subprocess
+import tempfile
 import time
-import uuid
 from datetime import datetime
 from pathlib import Path
 
 # ============================================================
 # APEX AI DEVELOPER
-# Step 6 - Production Monitoring
+# Stable Foundation - Steps 1 to 8
+#
+# IMPORTANT:
+# This version prepares the architecture for future steps.
+# It does NOT implement Step 9 yet.
 # ============================================================
 
-VERSION = "6.0.0"
+VERSION = "8.1.0"
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+
 MEMORY_FILE = PROJECT_ROOT / "developer_memory.json"
 BACKUP_DIR = PROJECT_ROOT / ".apex_backups"
+REMEDIATION_LOG_DIR = PROJECT_ROOT / ".apex_remediation_logs"
+MANIFEST_FILE = PROJECT_ROOT / "apex_release_manifest.json"
+
+PYTHON_EXTENSIONS = {".py"}
+
+MONITORING_LOG_EXTENSIONS = {
+    ".log",
+    ".txt",
+}
+
+MAX_LOG_READ_SIZE = 1024 * 1024
+
+MAX_MEMORY_ITEMS = 500
+MAX_TERMINAL_OUTPUT = 10000
 
 IGNORED_PARTS = {
     ".git",
@@ -27,9 +46,11 @@ IGNORED_PARTS = {
     "__pycache__",
     ".idea",
     ".vscode",
+    ".apex_backups",
+    ".apex_remediation_logs",
 }
 
-SAFE_COMMAND_PREFIXES = [
+SAFE_COMMAND_PREFIXES = (
     "python --version",
     "python -m pip --version",
     "pip --version",
@@ -43,9 +64,9 @@ SAFE_COMMAND_PREFIXES = [
     "where code",
     "dir",
     "tree",
-]
+)
 
-BLOCKED_COMMANDS = [
+BLOCKED_COMMANDS = (
     "del",
     "erase",
     "rmdir",
@@ -61,18 +82,9 @@ BLOCKED_COMMANDS = [
     "git reset --hard",
     "git clean",
     "git checkout --",
-]
+)
 
-PYTHON_EXTENSIONS = {".py"}
-
-MONITORING_LOG_EXTENSIONS = {
-    ".log",
-    ".txt",
-}
-
-MAX_LOG_READ_SIZE = 1024 * 1024
-
-ERROR_KEYWORDS = [
+ERROR_KEYWORDS = (
     "error",
     "exception",
     "traceback",
@@ -80,26 +92,66 @@ ERROR_KEYWORDS = [
     "fatal",
     "failed",
     "failure",
-]
+)
 
-WARNING_KEYWORDS = [
+WARNING_KEYWORDS = (
     "warning",
     "warn",
-]
+)
 
 
 # ============================================================
-# MEMORY
+# GENERAL HELPERS
+# ============================================================
+
+
+def now_iso():
+    return datetime.now().isoformat()
+
+
+def relative_path(path):
+    try:
+        return str(Path(path).resolve().relative_to(PROJECT_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def trim_text(value, limit=MAX_TERMINAL_OUTPUT):
+    if value is None:
+        return ""
+
+    value = str(value)
+
+    if len(value) <= limit:
+        return value
+
+    return value[-limit:]
+
+
+def remember(key, value):
+    MEMORY.setdefault(key, [])
+
+    MEMORY[key].append(value)
+
+    if len(MEMORY[key]) > MAX_MEMORY_ITEMS:
+        MEMORY[key] = MEMORY[key][-MAX_MEMORY_ITEMS:]
+
+
+# ============================================================
+# MEMORY MANAGEMENT
 # ============================================================
 
 
 def create_default_memory():
     return {
-        "version": VERSION,
-        "created_at": datetime.now().isoformat(),
+        "schema_version": 2,
+        "developer_version": VERSION,
+        "created_at": now_iso(),
+        "updated_at": now_iso(),
         "scans": [],
         "syntax_errors": [],
         "import_checks": [],
+        "import_runtime_checks": [],
         "fixes": [],
         "backups": [],
         "terminal_commands": [],
@@ -107,7 +159,23 @@ def create_default_memory():
         "release_preparations": [],
         "monitoring_history": [],
         "monitoring_alerts": [],
+        "remediations": [],
+        "deployments": [],
+        "pipeline_runs": [],
     }
+
+
+def normalize_memory(memory):
+    default = create_default_memory()
+
+    for key, value in default.items():
+        memory.setdefault(key, value)
+
+    memory["schema_version"] = 2
+    memory["developer_version"] = VERSION
+    memory["updated_at"] = now_iso()
+
+    return memory
 
 
 def load_memory():
@@ -122,69 +190,59 @@ def load_memory():
         ) as file:
             memory = json.load(file)
 
-        memory.setdefault(
-            "version",
-            VERSION,
-        )
-        memory.setdefault(
-            "scans",
-            [],
-        )
-        memory.setdefault(
-            "syntax_errors",
-            [],
-        )
-        memory.setdefault(
-            "import_checks",
-            [],
-        )
-        memory.setdefault(
-            "fixes",
-            [],
-        )
-        memory.setdefault(
-            "backups",
-            [],
-        )
-        memory.setdefault(
-            "terminal_commands",
-            [],
-        )
-        memory.setdefault(
-            "release_checks",
-            [],
-        )
-        memory.setdefault(
-            "release_preparations",
-            [],
-        )
-        memory.setdefault(
-            "monitoring_history",
-            [],
-        )
-        memory.setdefault("monitoring_alerts", [])
+        if not isinstance(memory, dict):
+            return create_default_memory()
 
-        return memory
+        return normalize_memory(memory)
 
-    except (
-        json.JSONDecodeError,
-        OSError,
-    ):
+    except (json.JSONDecodeError, OSError, TypeError):
+        print("⚠️ Existing memory could not be loaded.")
+        print("⚠️ Creating a fresh developer memory.")
+
         return create_default_memory()
 
 
 def save_memory(memory):
-    with open(
-        MEMORY_FILE,
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            memory,
-            file,
-            indent=4,
-            ensure_ascii=False,
+    """
+    Atomic memory write.
+
+    The main memory file is replaced only after the temporary
+    JSON file has been successfully written.
+    """
+
+    memory = normalize_memory(memory)
+
+    temp_file = MEMORY_FILE.with_suffix(".tmp")
+
+    try:
+        with open(
+            temp_file,
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(
+                memory,
+                file,
+                indent=4,
+                ensure_ascii=False,
+            )
+
+            file.flush()
+            os.fsync(file.fileno())
+
+        os.replace(
+            temp_file,
+            MEMORY_FILE,
         )
+
+    except Exception:
+        try:
+            if temp_file.exists():
+                temp_file.unlink()
+        except OSError:
+            pass
+
+        raise
 
 
 MEMORY = load_memory()
@@ -196,6 +254,8 @@ MEMORY = load_memory()
 
 
 def is_ignored(path):
+    path = Path(path)
+
     return any(part in IGNORED_PARTS for part in path.parts)
 
 
@@ -204,6 +264,7 @@ def scan_project():
     folders = set()
 
     for root, dirnames, filenames in os.walk(PROJECT_ROOT):
+
         root_path = Path(root)
 
         dirnames[:] = [name for name in dirnames if name not in IGNORED_PARTS]
@@ -223,6 +284,9 @@ def scan_project():
             if not is_ignored(file_path):
                 files.append(file_path)
 
+    files.sort()
+    folders = sorted(folders)
+
     return files, folders
 
 
@@ -236,6 +300,7 @@ def check_python_syntax(files):
     checked = 0
 
     for file_path in files:
+
         if file_path.suffix.lower() not in PYTHON_EXTENSIONS:
             continue
 
@@ -251,9 +316,10 @@ def check_python_syntax(files):
             )
 
         except SyntaxError as error:
+
             errors.append(
                 {
-                    "file": str(file_path.relative_to(PROJECT_ROOT)),
+                    "file": relative_path(file_path),
                     "line": error.lineno,
                     "column": error.offset,
                     "message": error.msg,
@@ -261,12 +327,24 @@ def check_python_syntax(files):
             )
 
         except UnicodeDecodeError as error:
+
             errors.append(
                 {
-                    "file": str(file_path.relative_to(PROJECT_ROOT)),
+                    "file": relative_path(file_path),
                     "line": None,
                     "column": None,
-                    "message": (f"Unicode decode error: {error}"),
+                    "message": f"Unicode decode error: {error}",
+                }
+            )
+
+        except OSError as error:
+
+            errors.append(
+                {
+                    "file": relative_path(file_path),
+                    "line": None,
+                    "column": None,
+                    "message": f"File read error: {error}",
                 }
             )
 
@@ -277,7 +355,7 @@ def check_python_syntax(files):
 
 
 # ============================================================
-# IMPORT ANALYSIS
+# AST IMPORT ANALYSIS
 # ============================================================
 
 
@@ -286,6 +364,7 @@ def check_python_imports(files):
     errors = []
 
     for file_path in files:
+
         if file_path.suffix.lower() not in PYTHON_EXTENSIONS:
             continue
 
@@ -302,39 +381,84 @@ def check_python_imports(files):
             for node in ast.walk(tree):
 
                 if isinstance(node, ast.Import):
+
                     for item in node.names:
-                        imports.append(item.name)
+                        imports.append(
+                            {
+                                "type": "import",
+                                "module": item.name,
+                            }
+                        )
 
-                elif isinstance(
-                    node,
-                    ast.ImportFrom,
-                ):
-                    module = node.module or ""
-                    imports.append(module)
+                elif isinstance(node, ast.ImportFrom):
 
-            relative_name = str(file_path.relative_to(PROJECT_ROOT))
+                    imports.append(
+                        {
+                            "type": "from",
+                            "module": node.module or "",
+                            "level": node.level,
+                        }
+                    )
 
-            results.append(
-                {
-                    "file": relative_name,
-                    "imports": imports,
-                    "count": len(imports),
-                }
-            )
+            result = {
+                "file": relative_path(file_path),
+                "imports": imports,
+                "count": len(imports),
+            }
+
+            results.append(result)
 
             print(f"📦 {file_path.name}: " f"{len(imports)} imports")
 
         except Exception as error:
-            relative_name = str(file_path.relative_to(PROJECT_ROOT))
 
             errors.append(
                 {
-                    "file": relative_name,
+                    "file": relative_path(file_path),
                     "message": str(error),
                 }
             )
 
     MEMORY["import_checks"] = results
+    save_memory(MEMORY)
+
+    return results, errors
+
+
+# ============================================================
+# RUNTIME IMPORT CHECK
+#
+# IMPORTANT:
+# AST analysis and runtime import testing are separated.
+# This makes future diagnostics safer.
+# ============================================================
+
+
+def check_runtime_imports(files):
+    results = []
+    errors = []
+
+    python_files = [path for path in files if path.suffix.lower() == ".py"]
+
+    for file_path in python_files:
+
+        relative_name = relative_path(file_path)
+
+        result = {
+            "file": relative_name,
+            "status": "not_executed",
+            "message": "",
+        }
+
+        # Do not execute arbitrary project files here.
+        # Future versions can introduce an explicit test runner.
+        result["message"] = (
+            "Runtime execution skipped for safety. " "AST import analysis completed."
+        )
+
+        results.append(result)
+
+    MEMORY["import_runtime_checks"] = results
     save_memory(MEMORY)
 
     return results, errors
@@ -347,6 +471,7 @@ def check_python_imports(files):
 
 def health_check():
     try:
+
         python_version = platform.python_version()
         operating_system = platform.system()
         machine = platform.machine()
@@ -356,9 +481,12 @@ def health_check():
             "python": python_version,
             "os": operating_system,
             "machine": machine,
+            "project_exists": PROJECT_ROOT.exists(),
+            "memory_file": MEMORY_FILE.exists(),
         }
 
     except Exception as error:
+
         return {
             "status": "unhealthy",
             "error": str(error),
@@ -371,6 +499,13 @@ def health_check():
 
 
 def safe_auto_fix(files, syntax_errors):
+    """
+    Conservative formatting cleanup only.
+
+    This function NEVER claims that it repaired arbitrary
+    Python syntax errors.
+    """
+
     fixes = []
 
     if not syntax_errors:
@@ -380,7 +515,8 @@ def safe_auto_fix(files, syntax_errors):
     error_files = {item["file"] for item in syntax_errors if item.get("file")}
 
     for file_path in files:
-        relative_name = str(file_path.relative_to(PROJECT_ROOT))
+
+        relative_name = relative_path(file_path)
 
         if relative_name not in error_files:
             continue
@@ -389,11 +525,10 @@ def safe_auto_fix(files, syntax_errors):
             continue
 
         try:
+
             original = file_path.read_text(encoding="utf-8-sig")
 
-            fixed = original
-
-            fixed = fixed.replace(
+            fixed = original.replace(
                 "\r\n",
                 "\n",
             )
@@ -403,6 +538,7 @@ def safe_auto_fix(files, syntax_errors):
             fixed = fixed.rstrip("\n") + "\n"
 
             if fixed != original:
+
                 file_path.write_text(
                     fixed,
                     encoding="utf-8",
@@ -412,15 +548,18 @@ def safe_auto_fix(files, syntax_errors):
                     {
                         "file": relative_name,
                         "type": "safe_format_cleanup",
+                        "timestamp": now_iso(),
                     }
                 )
 
         except Exception as error:
+
             fixes.append(
                 {
                     "file": relative_name,
                     "type": "fix_failed",
                     "error": str(error),
+                    "timestamp": now_iso(),
                 }
             )
 
@@ -435,13 +574,17 @@ def safe_auto_fix(files, syntax_errors):
 # ============================================================
 
 
-def create_backup():
+def create_backup(reason="manual"):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    backup_path = BACKUP_DIR / f"backup_{timestamp}"
+    backup_path = BACKUP_DIR / f"backup_{timestamp}_{reason}"
 
     try:
-        BACKUP_DIR.mkdir(exist_ok=True)
+
+        BACKUP_DIR.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         shutil.copytree(
             PROJECT_ROOT,
@@ -453,35 +596,37 @@ def create_backup():
                 "venv",
                 "__pycache__",
                 ".apex_backups",
+                ".apex_remediation_logs",
             ),
         )
 
         record = {
+            "timestamp": now_iso(),
             "path": str(backup_path),
-            "type": "pre_release_backup",
+            "reason": reason,
+            "developer_version": VERSION,
         }
 
-        MEMORY["backups"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "backups",
+            record,
         )
 
         save_memory(MEMORY)
 
-        print(f"💾 Backup created: " f"{backup_path}")
+        print(f"💾 Backup created: {backup_path}")
 
         return backup_path
 
     except Exception as error:
+
         print(f"❌ Backup failed: {error}")
 
         return None
 
 
 # ============================================================
-# TERMINAL
+# COMMAND SECURITY
 # ============================================================
 
 
@@ -517,27 +662,31 @@ def run_terminal_command(
     print(f"Command: {command}")
 
     if command_is_blocked(command):
-        print("⛔ Command is blocked " "by APEX safety policy.")
+
+        print("⛔ Command blocked by APEX safety policy.")
 
         return {
             "success": False,
             "blocked": True,
+            "requires_approval": False,
             "output": "",
             "error": "Blocked command",
         }
 
     if not command_is_safe(command) and not allow_unsafe:
-        print("🛡️ Command requires approval.")
+
+        print("🛡️ Command requires explicit approval.")
 
         return {
             "success": False,
             "blocked": False,
             "requires_approval": True,
             "output": "",
-            "error": ("Command requires approval"),
+            "error": "Command requires approval",
         }
 
     try:
+
         result = subprocess.run(
             command,
             cwd=PROJECT_ROOT,
@@ -547,11 +696,30 @@ def run_terminal_command(
             timeout=timeout,
         )
 
-        output = (result.stdout or "").strip()
+        output = trim_text(result.stdout)
 
-        error = (result.stderr or "").strip()
+        error = trim_text(result.stderr)
 
-        print("✅ Command completed.")
+        record = {
+            "timestamp": now_iso(),
+            "command": command,
+            "return_code": result.returncode,
+            "success": result.returncode == 0,
+            "output": output,
+            "error": error,
+        }
+
+        remember(
+            "terminal_commands",
+            record,
+        )
+
+        save_memory(MEMORY)
+
+        if result.returncode == 0:
+            print("✅ Command completed.")
+        else:
+            print(f"⚠️ Command returned code " f"{result.returncode}.")
 
         if output:
             print("📤 OUTPUT:")
@@ -561,62 +729,45 @@ def run_terminal_command(
             print("📥 ERROR:")
             print(error)
 
-        record = {
-            "command": command,
-            "return_code": result.returncode,
-            "success": result.returncode == 0,
-            "output": output[-10000:],
-            "error": error[-10000:],
-        }
-
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
-        )
-
-        save_memory(MEMORY)
-
         return record
 
     except subprocess.TimeoutExpired:
-        print("⏱️ Command timed out.")
 
         record = {
+            "timestamp": now_iso(),
             "command": command,
             "success": False,
             "error": "Command timed out",
         }
 
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "terminal_commands",
+            record,
         )
 
         save_memory(MEMORY)
 
+        print("⏱️ Command timed out.")
+
         return record
 
     except Exception as error:
-        print(f"❌ Terminal error: {error}")
 
         record = {
+            "timestamp": now_iso(),
             "command": command,
             "success": False,
             "error": str(error),
         }
 
-        MEMORY["terminal_commands"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                **record,
-            }
+        remember(
+            "terminal_commands",
+            record,
         )
 
         save_memory(MEMORY)
+
+        print(f"❌ Terminal error: {error}")
 
         return record
 
@@ -629,10 +780,7 @@ def run_terminal_command(
 def detect_vscode():
     result = run_terminal_command("where code")
 
-    if result.get("success") and result.get("output"):
-        return True
-
-    return False
+    return bool(result.get("success") and result.get("output"))
 
 
 # ============================================================
@@ -654,27 +802,28 @@ def release_git_check():
         "git_branch": bool(branch.get("success")),
         "git_log": bool(log.get("success")),
         "clean_worktree": False,
-        "has_remote_push": False,
+        "automatic_push": False,
     }
 
     if status.get("success"):
+
         output = status.get(
             "output",
             "",
         ).lower()
 
-        clean_markers = [
-            "nothing to commit, working tree clean",
-            "working tree clean",
-        ]
+        checks["clean_worktree"] = (
+            "working tree clean" in output or "nothing to commit" in output
+        )
 
-        checks["clean_worktree"] = any(marker in output for marker in clean_markers)
+    record = {
+        "timestamp": now_iso(),
+        **checks,
+    }
 
-    MEMORY["release_checks"].append(
-        {
-            "timestamp": datetime.now().isoformat(),
-            **checks,
-        }
+    remember(
+        "release_checks",
+        record,
     )
 
     save_memory(MEMORY)
@@ -694,14 +843,13 @@ def create_release_manifest(
     import_errors,
 ):
     python_files = [
-        str(path.relative_to(PROJECT_ROOT))
-        for path in files
-        if path.suffix.lower() == ".py"
+        relative_path(path) for path in files if path.suffix.lower() == ".py"
     ]
 
     manifest = {
+        "schema_version": 2,
         "developer_version": VERSION,
-        "created_at": datetime.now().isoformat(),
+        "created_at": now_iso(),
         "project": PROJECT_ROOT.name,
         "python_files": python_files,
         "python_file_count": len(python_files),
@@ -713,17 +861,25 @@ def create_release_manifest(
             "automatic_production_change": False,
             "automatic_delete": False,
             "automatic_package_update": False,
+            "automatic_destructive_action": False,
+        },
+        "future_step_policy": {
+            "requires_validation": True,
+            "requires_backup": True,
+            "requires_explicit_gate": True,
         },
     }
 
-    manifest_file = PROJECT_ROOT / "apex_release_manifest.json"
-
     try:
+
+        temp_file = MANIFEST_FILE.with_suffix(".tmp")
+
         with open(
-            manifest_file,
+            temp_file,
             "w",
             encoding="utf-8",
         ) as file:
+
             json.dump(
                 manifest,
                 file,
@@ -731,12 +887,21 @@ def create_release_manifest(
                 ensure_ascii=False,
             )
 
-        print("📄 Release manifest created: " f"{manifest_file.name}")
+            file.flush()
+            os.fsync(file.fileno())
 
-        return manifest_file
+        os.replace(
+            temp_file,
+            MANIFEST_FILE,
+        )
+
+        print(f"📄 Release manifest created: " f"{MANIFEST_FILE.name}")
+
+        return MANIFEST_FILE
 
     except OSError as error:
-        print("❌ Could not create " f"release manifest: {error}")
+
+        print(f"❌ Could not create manifest: {error}")
 
         return None
 
@@ -752,10 +917,9 @@ def prepare_release(
     syntax_errors,
     import_errors,
 ):
-    print("\n📦 Preparing safe release package...")
+    print("\n📦 Preparing safe release...")
 
     if syntax_errors:
-        print("⛔ Release preparation stopped: " "Python syntax errors exist.")
 
         return {
             "prepared": False,
@@ -763,7 +927,6 @@ def prepare_release(
         }
 
     if import_errors:
-        print("⛔ Release preparation stopped: " "import analysis errors exist.")
 
         return {
             "prepared": False,
@@ -771,17 +934,15 @@ def prepare_release(
         }
 
     if health.get("status") != "healthy":
-        print("⛔ Release preparation stopped: " "health check failed.")
 
         return {
             "prepared": False,
             "reason": "health_check_failed",
         }
 
-    backup_path = create_backup()
+    backup_path = create_backup(reason="release")
 
     if backup_path is None:
-        print("⛔ Release preparation stopped: " "backup failed.")
 
         return {
             "prepared": False,
@@ -796,6 +957,7 @@ def prepare_release(
     )
 
     if manifest_file is None:
+
         return {
             "prepared": False,
             "reason": "manifest_failed",
@@ -809,42 +971,40 @@ def prepare_release(
         "production_change": False,
     }
 
-    MEMORY["release_preparations"].append(
+    remember(
+        "release_preparations",
         {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_iso(),
             **result,
-        }
+        },
     )
 
     save_memory(MEMORY)
 
     print("✅ Safe release preparation completed.")
 
-    print("🛡️ No Git push was performed.")
+    print("🛡️ Git push: NOT performed.")
 
-    print("🛡️ No production change was performed.")
+    print("🛡️ Production change: NOT performed.")
 
     return result
 
 
 # ============================================================
-# MONITORING - MEMORY / SYSTEM
+# SYSTEM MEMORY MONITORING
 # ============================================================
 
 
 def get_system_memory():
-    """
-    Reads Windows physical memory information
-    without requiring an additional package.
-    """
-
     if platform.system() != "Windows":
+
         return {
             "available": False,
             "reason": "Windows-specific monitor",
         }
 
     try:
+
         import ctypes
 
         class MEMORYSTATUSEX(ctypes.Structure):
@@ -888,11 +1048,13 @@ def get_system_memory():
             ]
 
         status = MEMORYSTATUSEX()
+
         status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
 
         success = ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
 
         if not success:
+
             return {
                 "available": False,
                 "reason": ("GlobalMemoryStatusEx failed"),
@@ -922,6 +1084,7 @@ def get_system_memory():
         }
 
     except Exception as error:
+
         return {
             "available": False,
             "reason": str(error),
@@ -929,12 +1092,13 @@ def get_system_memory():
 
 
 # ============================================================
-# MONITORING - DISK
+# DISK MONITORING
 # ============================================================
 
 
 def get_disk_health():
     try:
+
         usage = shutil.disk_usage(PROJECT_ROOT)
 
         total_gb = usage.total / (1024**3)
@@ -966,6 +1130,7 @@ def get_disk_health():
         }
 
     except Exception as error:
+
         return {
             "available": False,
             "reason": str(error),
@@ -973,23 +1138,17 @@ def get_disk_health():
 
 
 # ============================================================
-# MONITORING - LOG FILES
+# LOG MONITORING
 # ============================================================
 
 
 def find_log_files(files):
-    log_files = []
-
-    for file_path in files:
-        if file_path.suffix.lower() in MONITORING_LOG_EXTENSIONS:
-            log_files.append(file_path)
-
-    return log_files
+    return [path for path in files if path.suffix.lower() in MONITORING_LOG_EXTENSIONS]
 
 
 def analyze_log_file(file_path):
     result = {
-        "file": str(file_path.relative_to(PROJECT_ROOT)),
+        "file": relative_path(file_path),
         "errors": 0,
         "warnings": 0,
         "critical": 0,
@@ -997,11 +1156,14 @@ def analyze_log_file(file_path):
     }
 
     try:
+
         if file_path.stat().st_size > MAX_LOG_READ_SIZE:
+
             with open(
                 file_path,
                 "rb",
             ) as file:
+
                 file.seek(
                     -MAX_LOG_READ_SIZE,
                     os.SEEK_END,
@@ -1011,7 +1173,9 @@ def analyze_log_file(file_path):
                     "utf-8",
                     errors="replace",
                 )
+
         else:
+
             content = file_path.read_text(
                 encoding="utf-8",
                 errors="replace",
@@ -1021,15 +1185,18 @@ def analyze_log_file(file_path):
             content.splitlines(),
             start=1,
         ):
+
             normalized = line.lower()
 
             if any(keyword in normalized for keyword in ERROR_KEYWORDS):
+
                 result["errors"] += 1
 
                 if "critical" in normalized or "fatal" in normalized:
                     result["critical"] += 1
 
                 if len(result["matches"]) < 20:
+
                     result["matches"].append(
                         {
                             "line": line_number,
@@ -1039,9 +1206,11 @@ def analyze_log_file(file_path):
                     )
 
             elif any(keyword in normalized for keyword in WARNING_KEYWORDS):
+
                 result["warnings"] += 1
 
                 if len(result["matches"]) < 20:
+
                     result["matches"].append(
                         {
                             "line": line_number,
@@ -1053,7 +1222,9 @@ def analyze_log_file(file_path):
         return result
 
     except Exception as error:
+
         result["read_error"] = str(error)
+
         return result
 
 
@@ -1070,58 +1241,65 @@ def build_monitoring_alerts(
     alerts = []
 
     if memory_health.get("available"):
-        memory_load = memory_health.get(
+
+        load = memory_health.get(
             "load_percent",
             0,
         )
 
-        if memory_load >= 90:
+        if load >= 90:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "memory",
                     "message": ("Physical memory usage " "is very high."),
-                    "value": memory_load,
+                    "value": load,
                 }
             )
 
-        elif memory_load >= 80:
+        elif load >= 80:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "memory",
                     "message": ("Physical memory usage " "is high."),
-                    "value": memory_load,
+                    "value": load,
                 }
             )
 
     if disk_health.get("available"):
-        disk_load = disk_health.get(
+
+        load = disk_health.get(
             "used_percent",
             0,
         )
 
-        if disk_load >= 95:
+        if load >= 95:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "disk",
-                    "message": ("Disk usage is critically high."),
-                    "value": disk_load,
+                    "message": ("Disk usage is " "critically high."),
+                    "value": load,
                 }
             )
 
-        elif disk_load >= 90:
+        elif load >= 90:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "disk",
                     "message": ("Disk usage is high."),
-                    "value": disk_load,
+                    "value": load,
                 }
             )
 
     for result in log_results:
+
         critical_count = result.get(
             "critical",
             0,
@@ -1138,34 +1316,37 @@ def build_monitoring_alerts(
         )
 
         if critical_count > 0:
+
             alerts.append(
                 {
                     "level": "critical",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Critical entries detected " "in application log."),
+                    "message": ("Critical log entries detected."),
                     "value": critical_count,
                 }
             )
 
         elif error_count > 0:
+
             alerts.append(
                 {
                     "level": "error",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Error entries detected " "in application log."),
+                    "message": ("Error log entries detected."),
                     "value": error_count,
                 }
             )
 
         elif warning_count > 0:
+
             alerts.append(
                 {
                     "level": "warning",
                     "type": "log",
                     "file": result["file"],
-                    "message": ("Warning entries detected " "in application log."),
+                    "message": ("Warning log entries detected."),
                     "value": warning_count,
                 }
             )
@@ -1174,7 +1355,7 @@ def build_monitoring_alerts(
 
 
 # ============================================================
-# PRODUCTION MONITORING
+# STEP 6 - PRODUCTION MONITORING
 # ============================================================
 
 
@@ -1187,17 +1368,11 @@ def run_production_monitoring(
     start_time = time.time()
 
     memory_health = get_system_memory()
-
     disk_health = get_disk_health()
 
     log_files = find_log_files(files)
 
-    log_results = []
-
-    for log_file in log_files:
-        result = analyze_log_file(log_file)
-
-        log_results.append(result)
+    log_results = [analyze_log_file(path) for path in log_files]
 
     alerts = build_monitoring_alerts(
         memory_health,
@@ -1210,178 +1385,459 @@ def run_production_monitoring(
         3,
     )
 
-    monitoring_status = "healthy"
+    status = "healthy"
 
-    if any(alert["level"] == "critical" for alert in alerts):
-        monitoring_status = "critical"
+    levels = {alert["level"] for alert in alerts}
 
-    elif any(alert["level"] == "error" for alert in alerts):
-        monitoring_status = "error"
+    if "critical" in levels:
+        status = "critical"
 
-    elif any(alert["level"] == "warning" for alert in alerts):
-        monitoring_status = "warning"
+    elif "error" in levels:
+        status = "error"
+
+    elif "warning" in levels:
+        status = "warning"
 
     result = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now_iso(),
         "developer_version": VERSION,
         "duration_seconds": duration,
-        "status": monitoring_status,
+        "status": status,
         "application_health": health,
         "memory": memory_health,
         "disk": disk_health,
         "log_files_checked": len(log_files),
         "logs": log_results,
         "alerts": alerts,
+        # Monitoring never changes production state.
         "automatic_action": False,
     }
 
-    MEMORY["monitoring_history"].append(result)
+    remember(
+        "monitoring_history",
+        result,
+    )
 
     MEMORY["monitoring_alerts"].extend(alerts)
-
-    MEMORY["monitoring_history"] = MEMORY["monitoring_history"][-100:]
 
     MEMORY["monitoring_alerts"] = MEMORY["monitoring_alerts"][-200:]
 
     save_memory(MEMORY)
 
-    print(f"❤️ Monitoring status: " f"{monitoring_status}")
+    print(f"❤️ Monitoring status: {status}")
 
     if memory_health.get("available"):
+
         print("🧠 Memory usage: " f"{memory_health['load_percent']}%")
 
     if disk_health.get("available"):
+
         print("💽 Disk usage: " f"{disk_health['used_percent']}%")
 
     print(f"📝 Log files checked: " f"{len(log_files)}")
 
     print(f"🚨 Alerts detected: " f"{len(alerts)}")
 
-    if alerts:
-        for alert in alerts:
-            print(f"   [{alert['level'].upper()}] " f"{alert['message']}")
+    return result
+
+
+# ============================================================
+# STEP 7 - SAFE SELF-HEALING
+# ============================================================
+
+
+def remediate_disk_space():
+    """
+    Only removes generated Python cache files.
+
+    No user files, source files, databases, logs, or Git files
+    are deleted.
+    """
+
+    cleaned_bytes = 0
+    removed_items = 0
+
+    try:
+
+        for root, dirs, files in os.walk(PROJECT_ROOT):
+
+            if "__pycache__" not in dirs:
+                continue
+
+            cache_path = Path(root) / "__pycache__"
+
+            for item in cache_path.iterdir():
+
+                try:
+
+                    if item.is_file():
+
+                        cleaned_bytes += item.stat().st_size
+
+                        item.unlink()
+
+                        removed_items += 1
+
+                except Exception:
+                    pass
+
+        return {
+            "type": "python_cache_cleanup",
+            "status": "success",
+            "cleaned_bytes": cleaned_bytes,
+            "removed_items": removed_items,
+            "message": ("Python cache cleanup completed."),
+        }
+
+    except Exception as error:
+
+        return {
+            "type": "python_cache_cleanup",
+            "status": "failed",
+            "error": str(error),
+        }
+
+
+def auto_remediate_alerts(monitoring_result):
+    """
+    Conservative self-healing.
+
+    IMPORTANT:
+    Logs are NOT automatically deleted or reset.
+    Production files are NOT modified.
+    """
+
+    print("\n🩹 APEX Self-Healing Engine...")
+
+    remediation_actions = []
+
+    alerts = monitoring_result.get(
+        "alerts",
+        [],
+    )
+
+    if not alerts:
+
+        print("✅ No alerts requiring remediation.")
+
+        return remediation_actions
+
+    for alert in alerts:
+
+        alert_type = alert.get("type")
+        level = alert.get("level")
+
+        if alert_type == "disk" and level in {
+            "warning",
+            "critical",
+        }:
+
+            action = remediate_disk_space()
+
+            remediation_actions.append(action)
+
+        elif alert_type == "memory" and level in {
+            "warning",
+            "critical",
+        }:
+
+            # No unsafe memory manipulation.
+            action = {
+                "type": "memory_alert",
+                "status": "observed",
+                "message": (
+                    "Memory pressure detected. "
+                    "No unsafe automatic action "
+                    "was performed."
+                ),
+            }
+
+            remediation_actions.append(action)
+
+        elif alert_type == "log":
+
+            # Log files are preserved.
+            action = {
+                "type": "log_alert",
+                "status": "observed",
+                "file": alert.get("file"),
+                "message": ("Log alert recorded. " "Automatic log reset is disabled."),
+            }
+
+            remediation_actions.append(action)
+
+    record = {
+        "timestamp": now_iso(),
+        "actions_count": len(remediation_actions),
+        "details": remediation_actions,
+    }
+
+    remember(
+        "remediations",
+        record,
+    )
+
+    save_memory(MEMORY)
+
+    print("✅ Self-Healing analysis completed: " f"{len(remediation_actions)} actions.")
+
+    return remediation_actions
+
+
+# ============================================================
+# STEP 8 - ORCHESTRATION
+# ============================================================
+
+
+def run_autonomous_orchestrator(
+    files,
+    health,
+    syntax_errors,
+    import_errors,
+    monitoring_result,
+    remediation_result,
+):
+    print("\n" + "=" * 60)
+
+    print("🚀 APEX STEP 8")
+
+    print("Autonomous Orchestration Gate")
+
+    print("=" * 60)
+
+    ready_for_release = (
+        health.get("status") == "healthy"
+        and len(syntax_errors) == 0
+        and len(import_errors) == 0
+    )
+
+    monitoring_safe = monitoring_result.get("status") not in {
+        "critical",
+        "error",
+    }
+
+    release_ready = ready_for_release and monitoring_safe
+
+    result = {
+        "timestamp": now_iso(),
+        "developer_version": VERSION,
+        "ready_for_release": release_ready,
+        "syntax_errors": len(syntax_errors),
+        "import_errors": len(import_errors),
+        "remediations_observed": len(remediation_result),
+        "monitoring_status": monitoring_result.get("status"),
+        # IMPORTANT:
+        # This version NEVER claims actual deployment.
+        "deployment_performed": False,
+        "production_changed": False,
+        "git_push_performed": False,
+    }
+
+    if release_ready:
+
+        result["status"] = "READY_FOR_DEPLOYMENT"
+
+        print("\n✅ All safety gates passed.")
+
+        print("🛡️ System is READY for a future " "deployment stage.")
+
+        print("🛑 Actual deployment was NOT performed.")
 
     else:
-        print("✅ No monitoring alerts detected.")
 
-    print("🛡️ Automatic production action: " "DISABLED")
+        result["status"] = "DEPLOYMENT_BLOCKED"
+
+        print("\n⛔ Deployment gate blocked.")
+
+    remember(
+        "deployments",
+        result,
+    )
+
+    save_memory(MEMORY)
 
     return result
 
 
 # ============================================================
-# MAIN
+# PIPELINE STATE
+#
+# This is the foundation for Step 9+.
+# ============================================================
+
+
+def build_pipeline_state(
+    files,
+    folders,
+    syntax_errors,
+    import_errors,
+    health,
+    monitoring_result,
+    remediation_result,
+    deployment_result,
+):
+    return {
+        "developer_version": VERSION,
+        "timestamp": now_iso(),
+        "project": {
+            "root": str(PROJECT_ROOT),
+            "files": len(files),
+            "folders": len(folders),
+        },
+        "validation": {
+            "syntax_errors": len(syntax_errors),
+            "import_analysis_errors": len(import_errors),
+            "health": health.get("status"),
+        },
+        "monitoring": {
+            "status": monitoring_result.get("status"),
+            "alerts": len(
+                monitoring_result.get(
+                    "alerts",
+                    [],
+                )
+            ),
+        },
+        "remediation": {
+            "actions": len(remediation_result),
+        },
+        "deployment_gate": {
+            "status": deployment_result.get("status"),
+            "performed": deployment_result.get(
+                "deployment_performed",
+                False,
+            ),
+        },
+        # Future stages can read this state
+        # instead of depending on console text.
+        "next_stage_ready": (deployment_result.get("status") == "READY_FOR_DEPLOYMENT"),
+    }
+
+
+# ============================================================
+# MAIN PIPELINE
 # ============================================================
 
 
 def main():
-    print("=" * 50)
-    print("🤖 APEX AI DEVELOPER")
-    print("📌 Step 6 - Production Monitoring")
-    print("=" * 50)
+    pipeline_start = time.time()
 
-    print(f"📁 Project: {PROJECT_ROOT}")
+    print("=" * 60)
+
+    print("🤖 APEX AI DEVELOPER")
+
+    print("📌 Stable Foundation - Steps 1 to 8")
 
     print(f"🧠 Version: {VERSION}")
 
-    print("\n🚀 Starting APEX Developer Step 6...")
+    print("=" * 60)
+
+    print(f"📁 Project: {PROJECT_ROOT}")
 
     # --------------------------------------------------------
-    # Project Scan
+    # STEP 1
     # --------------------------------------------------------
 
-    print("\n🔍 Scanning APEX project...")
+    print("\n" + "=" * 60)
+
+    print("STEP 1 - PROJECT SCAN")
+
+    print("=" * 60)
 
     files, folders = scan_project()
 
-    print(f"✅ Files found: {len(files)}")
+    print(f"✅ Files: {len(files)}")
 
-    print(f"📂 Folders found: {len(folders)}")
+    print(f"📂 Folders: {len(folders)}")
 
-    MEMORY["scans"].append(
+    remember(
+        "scans",
         {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_iso(),
             "files": len(files),
             "folders": len(folders),
             "version": VERSION,
-        }
+        },
     )
 
     save_memory(MEMORY)
 
     # --------------------------------------------------------
-    # Syntax
+    # STEP 2
     # --------------------------------------------------------
 
-    print("\n🐍 Checking Python syntax...")
+    print("\n" + "=" * 60)
+
+    print("STEP 2 - PYTHON VALIDATION")
+
+    print("=" * 60)
 
     checked, syntax_errors = check_python_syntax(files)
 
-    print(f"📊 Python files checked: " f"{checked}")
+    print(f"🐍 Python files checked: {checked}")
 
     if syntax_errors:
-        print(f"❌ Python syntax errors: " f"{len(syntax_errors)}")
 
-        for error in syntax_errors:
-            print(
-                f"   {error['file']} - " f"line {error['line']}: " f"{error['message']}"
-            )
+        print(f"❌ Syntax errors: " f"{len(syntax_errors)}")
 
     else:
-        print("✅ No Python syntax errors found.")
+
+        print("✅ No Python syntax errors.")
 
     # --------------------------------------------------------
-    # Imports
+    # STEP 3
     # --------------------------------------------------------
 
-    print("\n📦 Checking Python imports...")
+    print("\n" + "=" * 60)
+
+    print("STEP 3 - IMPORT ANALYSIS")
+
+    print("=" * 60)
 
     import_results, import_errors = check_python_imports(files)
 
-    if import_errors:
-        print(f"❌ Import analysis errors: " f"{len(import_errors)}")
+    runtime_import_results, runtime_import_errors = check_runtime_imports(files)
 
-    else:
-        print("✅ Import analysis completed.")
+    combined_import_errors = import_errors + runtime_import_errors
+
+    print(f"📦 Import analysis errors: " f"{len(import_errors)}")
 
     # --------------------------------------------------------
-    # Health
+    # STEP 4
     # --------------------------------------------------------
 
-    print("\n❤️ APEX Health Check...")
+    print("\n" + "=" * 60)
+
+    print("STEP 4 - SYSTEM HEALTH")
+
+    print("=" * 60)
 
     health = health_check()
 
-    print(f"Status: {health.get('status')}")
+    print(f"❤️ Status: {health.get('status')}")
 
-    print(f"Python: {health.get('python')}")
+    print(f"🐍 Python: {health.get('python')}")
 
-    print(f"OS: {health.get('os')}")
+    print(f"🪟 OS: {health.get('os')}")
 
-    print(f"Machine: {health.get('machine')}")
+    print(f"⚙️ Machine: {health.get('machine')}")
 
     # --------------------------------------------------------
-    # Safe Auto-Fix
+    # STEP 5
     # --------------------------------------------------------
 
-    print("\n🛠️ APEX Safe Auto-Fix...")
+    print("\n" + "=" * 60)
+
+    print("STEP 5 - SAFE FIX + DIAGNOSTICS")
+
+    print("=" * 60)
 
     fixes = safe_auto_fix(
         files,
         syntax_errors,
     )
 
-    if fixes:
-        print(f"🛠️ Safe fixes applied: " f"{len(fixes)}")
-
-    else:
-        print("✅ No syntax errors require fixing.")
-
-    # --------------------------------------------------------
-    # Terminal Diagnostics
-    # --------------------------------------------------------
-
-    print("\n🔧 Running terminal diagnostics...")
+    print(f"🛠️ Safe formatting fixes: " f"{len(fixes)}")
 
     diagnostics = []
 
@@ -1394,61 +1850,22 @@ def main():
     diagnostics.append(run_terminal_command("git status"))
 
     # --------------------------------------------------------
-    # VS Code
+    # STEP 5B - VS CODE
     # --------------------------------------------------------
-
-    print("\n🧩 Checking VS Code...")
 
     vscode_detected = detect_vscode()
 
-    if vscode_detected:
-        print("🧩 VS Code detected.")
-
-    else:
-        print("ℹ️ VS Code command was not detected.")
+    print("🧩 VS Code detected: " f"{vscode_detected}")
 
     # --------------------------------------------------------
-    # Release Safety
+    # STEP 6
     # --------------------------------------------------------
 
-    release_checks = release_git_check()
+    print("\n" + "=" * 60)
 
-    print("\n📋 Release safety:")
+    print("STEP 6 - PRODUCTION MONITORING")
 
-    print(
-        "🌿 Git status check:",
-        "OK" if release_checks["git_status"] else "FAILED",
-    )
-
-    print(
-        "🌿 Git branch check:",
-        "OK" if release_checks["git_branch"] else "FAILED",
-    )
-
-    print(
-        "🌿 Git log check:",
-        "OK" if release_checks["git_log"] else "FAILED",
-    )
-
-    print(
-        "🧹 Working tree:",
-        "CLEAN" if release_checks["clean_worktree"] else "HAS CHANGES",
-    )
-
-    # --------------------------------------------------------
-    # Release Preparation
-    # --------------------------------------------------------
-
-    release_result = prepare_release(
-        files,
-        health,
-        syntax_errors,
-        import_errors,
-    )
-
-    # --------------------------------------------------------
-    # Step 6 Monitoring
-    # --------------------------------------------------------
+    print("=" * 60)
 
     monitoring_result = run_production_monitoring(
         files,
@@ -1456,858 +1873,138 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Final Report
+    # STEP 7
+    # --------------------------------------------------------
+
+    print("\n" + "=" * 60)
+
+    print("STEP 7 - SAFE SELF-HEALING")
+
+    print("=" * 60)
+
+    remediation_result = auto_remediate_alerts(monitoring_result)
+
+    # --------------------------------------------------------
+    # STEP 8
+    # --------------------------------------------------------
+
+    print("\n" + "=" * 60)
+
+    print("STEP 8 - RELEASE / DEPLOYMENT GATE")
+
+    print("=" * 60)
+
+    release_checks = release_git_check()
+
+    release_result = prepare_release(
+        files,
+        health,
+        syntax_errors,
+        combined_import_errors,
+    )
+
+    deployment_result = run_autonomous_orchestrator(
+        files,
+        health,
+        syntax_errors,
+        combined_import_errors,
+        monitoring_result,
+        remediation_result,
+    )
+
+    # --------------------------------------------------------
+    # PIPELINE STATE
+    # --------------------------------------------------------
+
+    pipeline_state = build_pipeline_state(
+        files,
+        folders,
+        syntax_errors,
+        combined_import_errors,
+        health,
+        monitoring_result,
+        remediation_result,
+        deployment_result,
+    )
+
+    pipeline_state["release_prepared"] = release_result.get(
+        "prepared",
+        False,
+    )
+
+    pipeline_state["git"] = release_checks
+
+    pipeline_state["vscode"] = vscode_detected
+
+    pipeline_state["duration_seconds"] = round(
+        time.time() - pipeline_start,
+        3,
+    )
+
+    remember(
+        "pipeline_runs",
+        pipeline_state,
+    )
+
+    save_memory(MEMORY)
+
+    # --------------------------------------------------------
+    # FINAL REPORT
     # --------------------------------------------------------
 
     final_health = health_check()
 
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
 
-    print("📋 STEP 6 REPORT")
+    print("📋 APEX STEPS 1-8 FINAL REPORT")
 
-    print("=" * 50)
+    print("=" * 60)
 
     print(f"📁 Files: {len(files)}")
 
     print(f"📂 Folders: {len(folders)}")
 
-    print(f"🐍 Initial syntax errors: " f"{len(syntax_errors)}")
+    print(f"🐍 Syntax Errors: " f"{len(syntax_errors)}")
 
-    print(f"📦 Import errors: " f"{len(import_errors)}")
+    print(f"📦 Import Errors: " f"{len(combined_import_errors)}")
 
-    print(f"🛠️ Safe fixes applied: " f"{len(fixes)}")
+    print(f"🛠️ Safe Fixes: " f"{len(fixes)}")
 
-    print(f"🖥️ Terminal diagnostics: " f"{len(diagnostics)}")
+    print(f"🖥️ Diagnostics: " f"{len(diagnostics)}")
 
-    print(f"🧩 VS Code detected: " f"{vscode_detected}")
+    print(f"🧩 VS Code: " f"{vscode_detected}")
 
-    print(f"💾 Release backup: " f"{release_result.get('prepared', False)}")
+    print(f"📡 Monitoring: " f"{monitoring_result.get('status')}")
 
-    print(f"📡 Monitoring status: " f"{monitoring_result.get('status')}")
+    print(f"🚨 Alerts: " f"{len(monitoring_result.get('alerts', []))}")
 
-    print(f"🚨 Monitoring alerts: " f"{len(monitoring_result.get('alerts', []))}")
+    print(f"🩹 Remediation Actions: " f"{len(remediation_result)}")
 
-    print(f"❤️ Final health: " f"{final_health.get('status')}")
+    print(f"📦 Release Prepared: " f"{release_result.get('prepared', False)}")
 
-    print("🛡️ Automatic production action: DISABLED")
+    print(f"🎯 Deployment Gate: " f"{deployment_result.get('status')}")
 
-    if (
-        final_health.get("status") == "healthy"
-        and not syntax_errors
-        and not import_errors
-        and release_result.get("prepared")
-    ):
-        print("\n✅ STEP 6 COMPLETED SUCCESSFULLY.")
+    print(f"❤️ Final Health: " f"{final_health.get('status')}")
+
+    print(f"⏱️ Duration: " f"{pipeline_state['duration_seconds']} sec")
+
+    if pipeline_state["next_stage_ready"]:
+
+        print("\n" "🟢 FOUNDATION READY FOR NEXT STEP.")
+
+        print("🛡️ No production deployment performed.")
 
     else:
-        print("\n⚠️ STEP 6 COMPLETED " "WITH CHECKS REQUIRED.")
 
-    print("=" * 50)
+        print("\n" "🟡 PIPELINE COMPLETED " "WITH CHECKS REQUIRED.")
+
+    print("=" * 60)
+
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
 
 
 if __name__ == "__main__":
     main()
-# ============================================================
-# APEX AI DEVELOPER
-# Step 7 - Developer Core / Permission & Approval System
-# ============================================================
-
-STEP7_VERSION = "7.0.0"
-
-APEX_CORE_DIR = PROJECT_ROOT / ".apex_core"
-
-PERMISSION_FILE = APEX_CORE_DIR / "permissions.json"
-
-APPROVAL_FILE = APEX_CORE_DIR / "approvals.json"
-
-ACTION_LOG_FILE = APEX_CORE_DIR / "action_history.json"
-
-
-# ============================================================
-# STEP 7 - DEFAULT PERMISSIONS
-# ============================================================
-
-STEP7_DEFAULT_PERMISSIONS = {
-    "monitor": True,
-    "scan_project": True,
-    "read_files": True,
-    "run_tests": True,
-    "run_safe_commands": True,
-    "write_files": False,
-    "modify_code": False,
-    "install_packages": False,
-    "delete_files": False,
-    "git_commit": False,
-    "git_push": False,
-    "production_change": False,
-}
-
-
-# ============================================================
-# STEP 7 - ACTION SECURITY LEVELS
-# ============================================================
-
-STEP7_ACTION_LEVELS = {
-    "monitor": "LOW",
-    "scan_project": "LOW",
-    "read_files": "LOW",
-    "run_tests": "LOW",
-    "run_safe_commands": "LOW",
-    "write_files": "MEDIUM",
-    "modify_code": "MEDIUM",
-    "install_packages": "HIGH",
-    "git_commit": "HIGH",
-    "delete_files": "CRITICAL",
-    "git_push": "CRITICAL",
-    "production_change": "CRITICAL",
-}
-
-
-# ============================================================
-# STEP 7 - PROTECTED ACTIONS
-# ============================================================
-
-STEP7_PROTECTED_ACTIONS = {
-    "write_files",
-    "modify_code",
-    "install_packages",
-    "delete_files",
-    "git_commit",
-    "git_push",
-    "production_change",
-}
-
-
-# ============================================================
-# STEP 7 - DIRECTORY
-# ============================================================
-
-
-def step7_ensure_directory():
-    APEX_CORE_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-
-# ============================================================
-# STEP 7 - JSON LOAD
-# ============================================================
-
-
-def step7_load_json(
-    path,
-    default,
-):
-    try:
-        if not path.exists():
-            return default
-
-        with open(
-            path,
-            "r",
-            encoding="utf-8",
-        ) as file:
-            return json.load(file)
-
-    except (
-        json.JSONDecodeError,
-        OSError,
-    ):
-        return default
-
-
-# ============================================================
-# STEP 7 - JSON SAVE
-# ============================================================
-
-
-def step7_save_json(
-    path,
-    data,
-):
-    try:
-        step7_ensure_directory()
-
-        temporary_path = Path(str(path) + ".tmp")
-
-        with open(
-            temporary_path,
-            "w",
-            encoding="utf-8",
-        ) as file:
-            json.dump(
-                data,
-                file,
-                indent=4,
-                ensure_ascii=False,
-            )
-
-        os.replace(
-            temporary_path,
-            path,
-        )
-
-        return True
-
-    except OSError:
-        return False
-
-
-# ============================================================
-# STEP 7 - PERMISSION INITIALIZATION
-# ============================================================
-
-
-def step7_initialize_permissions():
-
-    step7_ensure_directory()
-
-    permissions = step7_load_json(
-        PERMISSION_FILE,
-        {},
-    )
-
-    if not isinstance(
-        permissions,
-        dict,
-    ):
-        permissions = {}
-
-    changed = False
-
-    for action, enabled in STEP7_DEFAULT_PERMISSIONS.items():
-        if action not in permissions:
-            permissions[action] = enabled
-            changed = True
-
-    if changed or not PERMISSION_FILE.exists():
-        step7_save_json(
-            PERMISSION_FILE,
-            permissions,
-        )
-
-    return permissions
-
-
-# ============================================================
-# STEP 7 - GET PERMISSIONS
-# ============================================================
-
-
-def step7_get_permissions():
-
-    return step7_initialize_permissions()
-
-
-# ============================================================
-# STEP 7 - CHECK PERMISSION
-# ============================================================
-
-
-def step7_permission_enabled(
-    action,
-):
-
-    permissions = step7_get_permissions()
-
-    return bool(
-        permissions.get(
-            action,
-            False,
-        )
-    )
-
-
-# ============================================================
-# STEP 7 - SET PERMISSION
-# ============================================================
-
-
-def step7_set_permission(
-    action,
-    enabled,
-):
-
-    if action not in STEP7_DEFAULT_PERMISSIONS:
-        return False
-
-    permissions = step7_get_permissions()
-
-    permissions[action] = bool(enabled)
-
-    return step7_save_json(
-        PERMISSION_FILE,
-        permissions,
-    )
-
-
-# ============================================================
-# STEP 7 - ACTION LEVEL
-# ============================================================
-
-
-def step7_get_action_level(
-    action,
-):
-
-    return STEP7_ACTION_LEVELS.get(
-        action,
-        "UNKNOWN",
-    )
-
-
-# ============================================================
-# STEP 7 - LOAD APPROVALS
-# ============================================================
-
-
-def step7_load_approvals():
-
-    data = step7_load_json(
-        APPROVAL_FILE,
-        [],
-    )
-
-    if not isinstance(
-        data,
-        list,
-    ):
-        return []
-
-    return data
-
-
-# ============================================================
-# STEP 7 - CREATE APPROVAL REQUEST
-# ============================================================
-
-
-def step7_create_approval(
-    action,
-    description,
-    requested_by="APEX",
-):
-
-    if action not in STEP7_DEFAULT_PERMISSIONS:
-        return None
-
-    approval = {
-        "id": str(uuid.uuid4()),
-        "action": action,
-        "description": description,
-        "requested_by": requested_by,
-        "level": step7_get_action_level(action),
-        "status": "PENDING",
-        "created_at": datetime.now().isoformat(),
-        "approved_at": None,
-        "approved_by": None,
-    }
-
-    approvals = step7_load_approvals()
-
-    approvals.append(approval)
-
-    approvals = approvals[-500:]
-
-    if not step7_save_json(
-        APPROVAL_FILE,
-        approvals,
-    ):
-        return None
-
-    return approval
-
-
-# ============================================================
-# STEP 7 - GET APPROVAL
-# ============================================================
-
-
-def step7_get_approval(
-    approval_id,
-):
-
-    approvals = step7_load_approvals()
-
-    for approval in approvals:
-
-        if approval.get("id") == approval_id:
-            return approval
-
-    return None
-
-
-# ============================================================
-# STEP 7 - APPROVE
-# ============================================================
-
-
-def step7_approve(
-    approval_id,
-    approved_by="USER",
-):
-
-    approvals = step7_load_approvals()
-
-    for approval in approvals:
-
-        if approval.get("id") != approval_id:
-            continue
-
-        if approval.get("status") != "PENDING":
-            return False
-
-        approval["status"] = "APPROVED"
-
-        approval["approved_at"] = datetime.now().isoformat()
-
-        approval["approved_by"] = approved_by
-
-        return step7_save_json(
-            APPROVAL_FILE,
-            approvals,
-        )
-
-    return False
-
-
-# ============================================================
-# STEP 7 - REJECT
-# ============================================================
-
-
-def step7_reject(
-    approval_id,
-    rejected_by="USER",
-):
-
-    approvals = step7_load_approvals()
-
-    for approval in approvals:
-
-        if approval.get("id") != approval_id:
-            continue
-
-        if approval.get("status") != "PENDING":
-            return False
-
-        approval["status"] = "REJECTED"
-
-        approval["approved_at"] = datetime.now().isoformat()
-
-        approval["approved_by"] = rejected_by
-
-        return step7_save_json(
-            APPROVAL_FILE,
-            approvals,
-        )
-
-    return False
-
-
-# ============================================================
-# STEP 7 - ACTION LOG
-# ============================================================
-
-
-def step7_load_action_history():
-
-    data = step7_load_json(
-        ACTION_LOG_FILE,
-        [],
-    )
-
-    if not isinstance(
-        data,
-        list,
-    ):
-        return []
-
-    return data
-
-
-# ============================================================
-# STEP 7 - WRITE ACTION LOG
-# ============================================================
-
-
-def step7_log_action(
-    action,
-    status,
-    description="",
-    approval_id=None,
-):
-
-    record = {
-        "id": str(uuid.uuid4()),
-        "timestamp": datetime.now().isoformat(),
-        "action": action,
-        "level": step7_get_action_level(action),
-        "status": status,
-        "description": description,
-        "approval_id": approval_id,
-    }
-
-    history = step7_load_action_history()
-
-    history.append(record)
-
-    history = history[-1000:]
-
-    step7_save_json(
-        ACTION_LOG_FILE,
-        history,
-    )
-
-    return record
-
-
-# ============================================================
-# STEP 7 - APPROVAL CHECK
-# ============================================================
-
-
-def step7_is_approved(
-    action,
-    approval_id=None,
-):
-
-    if action not in STEP7_DEFAULT_PERMISSIONS:
-        return False
-
-    if not step7_permission_enabled(action):
-        return False
-
-    if action not in STEP7_PROTECTED_ACTIONS:
-        return True
-
-    if not approval_id:
-        return False
-
-    approval = step7_get_approval(approval_id)
-
-    if not approval:
-        return False
-
-    if approval.get("action") != action:
-        return False
-
-    if approval.get("status") != "APPROVED":
-        return False
-
-    return True
-
-
-# ============================================================
-# STEP 7 - ACTION GATE
-# ============================================================
-
-
-def step7_request_action(
-    action,
-    description,
-):
-
-    if action not in STEP7_DEFAULT_PERMISSIONS:
-
-        step7_log_action(
-            action,
-            "DENIED_UNKNOWN_ACTION",
-            description,
-        )
-
-        return {
-            "allowed": False,
-            "requires_approval": False,
-            "status": "DENIED_UNKNOWN_ACTION",
-        }
-
-    if not step7_permission_enabled(action):
-
-        step7_log_action(
-            action,
-            "DENIED_PERMISSION",
-            description,
-        )
-
-        return {
-            "allowed": False,
-            "requires_approval": False,
-            "status": "DENIED_PERMISSION",
-        }
-
-    if action in STEP7_PROTECTED_ACTIONS:
-
-        approval = step7_create_approval(
-            action,
-            description,
-        )
-
-        if approval is None:
-
-            step7_log_action(
-                action,
-                "APPROVAL_REQUEST_FAILED",
-                description,
-            )
-
-            return {
-                "allowed": False,
-                "requires_approval": True,
-                "status": ("APPROVAL_REQUEST_FAILED"),
-            }
-
-        step7_log_action(
-            action,
-            "WAITING_FOR_APPROVAL",
-            description,
-            approval["id"],
-        )
-
-        return {
-            "allowed": False,
-            "requires_approval": True,
-            "status": ("WAITING_FOR_APPROVAL"),
-            "approval_id": approval["id"],
-        }
-
-    step7_log_action(
-        action,
-        "ALLOWED",
-        description,
-    )
-
-    return {
-        "allowed": True,
-        "requires_approval": False,
-        "status": "ALLOWED",
-    }
-
-
-# ============================================================
-# STEP 7 - PRODUCTION PROTECTION
-# ============================================================
-
-
-def step7_production_change_allowed(
-    approval_id=None,
-):
-
-    if not step7_permission_enabled("production_change"):
-        return False
-
-    return step7_is_approved(
-        "production_change",
-        approval_id,
-    )
-
-
-# ============================================================
-# STEP 7 - CORE STATUS
-# ============================================================
-
-
-def step7_core_status():
-
-    permissions = step7_get_permissions()
-
-    approvals = step7_load_approvals()
-
-    history = step7_load_action_history()
-
-    pending = [item for item in approvals if item.get("status") == "PENDING"]
-
-    return {
-        "component": ("APEX Developer Core"),
-        "version": STEP7_VERSION,
-        "status": "READY",
-        "permissions": permissions,
-        "pending_approvals": len(pending),
-        "action_history": len(history),
-        "production_change": {
-            "enabled": permissions.get(
-                "production_change",
-                False,
-            ),
-            "automatic": False,
-            "requires_approval": True,
-        },
-    }
-
-
-# ============================================================
-# STEP 7 - SELF TEST
-# ============================================================
-
-
-def run_step7_test():
-
-    print()
-    print("=" * 50)
-    print("🤖 APEX AI DEVELOPER")
-    print("📌 Step 7 - Developer Core")
-    print("=" * 50)
-
-    print(f"🧠 Step 7 Version: " f"{STEP7_VERSION}")
-
-    # --------------------------------------------------------
-    # 1. Permission initialization
-    # --------------------------------------------------------
-
-    print("\n[1/7] Permission system...")
-
-    permissions = step7_initialize_permissions()
-
-    if not permissions:
-        print("❌ Permission system failed.")
-        return False
-
-    print("✅ Permission system OK")
-
-    # --------------------------------------------------------
-    # 2. Permission lookup
-    # --------------------------------------------------------
-
-    print("\n[2/7] Permission lookup...")
-
-    if "monitor" not in permissions:
-        print("❌ Permission lookup failed.")
-        return False
-
-    print("✅ Permission lookup OK")
-
-    # --------------------------------------------------------
-    # 3. Low-risk action
-    # --------------------------------------------------------
-
-    print("\n[3/7] Low-risk action...")
-
-    result = step7_request_action(
-        "monitor",
-        "Step 7 monitoring test",
-    )
-
-    if not result.get("allowed"):
-        print("❌ Low-risk action blocked.")
-        return False
-
-    print("✅ Low-risk action allowed.")
-
-    # --------------------------------------------------------
-    # 4. Protected action
-    # --------------------------------------------------------
-
-    print("\n[4/7] Protected action...")
-
-    original_permission = permissions.get(
-        "write_files",
-        False,
-    )
-
-    step7_set_permission(
-        "write_files",
-        True,
-    )
-
-    result = step7_request_action(
-        "write_files",
-        "Step 7 approval test",
-    )
-
-    step7_set_permission(
-        "write_files",
-        original_permission,
-    )
-
-    if not result.get("requires_approval"):
-        print("❌ Protected action " "did not request approval.")
-        return False
-
-    approval_id = result.get("approval_id")
-
-    if not approval_id:
-        print("❌ Approval ID missing.")
-        return False
-
-    print("✅ Human approval requested.")
-
-    # --------------------------------------------------------
-    # 5. Approval workflow
-    # --------------------------------------------------------
-
-    print("\n[5/7] Approval workflow...")
-
-    if not step7_approve(
-        approval_id,
-        "STEP7_TEST",
-    ):
-        print("❌ Approval failed.")
-        return False
-
-    if not step7_is_approved(
-        "write_files",
-        approval_id,
-    ):
-        print("❌ Approval validation failed.")
-        return False
-
-    print("✅ Approval workflow OK")
-
-    # --------------------------------------------------------
-    # 6. Production protection
-    # --------------------------------------------------------
-
-    print("\n[6/7] Production protection...")
-
-    if step7_production_change_allowed():
-        print("❌ Production change " "was automatically allowed.")
-        return False
-
-    print("✅ Production change protected.")
-
-    # --------------------------------------------------------
-    # 7. Core status
-    # --------------------------------------------------------
-
-    print("\n[7/7] Developer Core status...")
-
-    status = step7_core_status()
-
-    if status.get("status") != "READY":
-        print("❌ Developer Core is not READY.")
-        return False
-
-    print("✅ Developer Core READY")
-
-    # --------------------------------------------------------
-    # Final
-    # --------------------------------------------------------
-
-    print()
-    print("=" * 50)
-    print("✅ STEP 7 COMPLETED SUCCESSFULLY.")
-    print("=" * 50)
-
-    print("🛡️ Human approval: REQUIRED")
-
-    print("🚫 Automatic production action: DISABLED")
-
-    print("📝 Action audit log: ENABLED")
-
-    print("🔐 Permission system: ENABLED")
-
-    return True
-
-
-# ============================================================
-# STEP 7 - RUN
-# ============================================================
-
-step7_success = run_step7_test()
-
-if not step7_success:
-    print()
-    print("⚠️ STEP 7 FAILED.")
-    print("Step 1-6 were not modified.")
-    raise SystemExit(1)
