@@ -1037,6 +1037,30 @@
             "files": 62,
             "folders": 8,
             "version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-20T19:33:14.717995",
+            "files": 63,
+            "folders": 8,
+            "version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-23T13:33:52.637211",
+            "files": 63,
+            "folders": 8,
+            "version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-30T14:44:01.719183",
+            "files": 67,
+            "folders": 8,
+            "version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-11-03T21:56:41.726591",
+            "files": 67,
+            "folders": 8,
+            "version": "9.0.0"
         }
     ],
     "health_checks": [
@@ -1583,6 +1607,34 @@
             "count": 6
         },
         {
+            "file": "run_step5_isolated_test.py",
+            "imports": [
+                {
+                    "type": "import",
+                    "module": "ast"
+                },
+                {
+                    "type": "import",
+                    "module": "shutil"
+                },
+                {
+                    "type": "import",
+                    "module": "tempfile"
+                },
+                {
+                    "type": "from",
+                    "module": "datetime",
+                    "level": 0
+                },
+                {
+                    "type": "from",
+                    "module": "pathlib",
+                    "level": 0
+                }
+            ],
+            "count": 5
+        },
+        {
             "file": "screen_analyzer.py",
             "imports": [
                 {
@@ -1663,6 +1715,25 @@
                 {
                     "type": "from",
                     "module": "PIL",
+                    "level": 0
+                }
+            ],
+            "count": 3
+        },
+        {
+            "file": "test_step5_safe_fix.py",
+            "imports": [
+                {
+                    "type": "import",
+                    "module": "ast"
+                },
+                {
+                    "type": "import",
+                    "module": "tempfile"
+                },
+                {
+                    "type": "from",
+                    "module": "pathlib",
                     "level": 0
                 }
             ],
@@ -1797,6 +1868,30 @@
         {
             "timestamp": "2026-10-06T23:56:09.956229",
             "path": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261006_235609_651047_release",
+            "reason": "release",
+            "developer_version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-20T19:33:21.116389",
+            "path": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261020_193320_269375_release",
+            "reason": "release",
+            "developer_version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-23T13:34:08.119063",
+            "path": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261023_133406_650990_release",
+            "reason": "release",
+            "developer_version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-10-30T14:44:18.513332",
+            "path": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261030_144416_988412_release",
+            "reason": "release",
+            "developer_version": "9.0.0"
+        },
+        {
+            "timestamp": "2026-11-03T21:57:24.505094",
+            "path": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261103_215721_059402_release",
             "reason": "release",
             "developer_version": "9.0.0"
         }
@@ -3237,6 +3332,262 @@
             "success": true,
             "output": "commit c931ea9a7358b8d639ac986b240a6b1164563865\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Oct 1 14:03:58 2026 +0300\n\n    kk\n\ncommit 1da0407cfb6248116b03ac815c3f56cf922136b7\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Sep 30 11:29:08 2026 +0300\n\n    nwe\n\ncommit df3210ee1bdcf688ea9f7a5a351cdf881ab5e4cb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 20 13:03:21 2026 +0300\n\n    apex\n\ncommit 008aaae9fe7ec2c93f64ba730ec728adf36a4718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Sep 17 13:06:09 2026 +0300\n\n    apex\n\ncommit fc45c8893179d512ecc91501308a9151e5652a05\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Tue Sep 15 09:20:08 2026 +0300\n\n    apex\n\ncommit a70db051708643e2208996c88a16039177129c99\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 6 13:21:57 2026 +0300\n\n    new idea\n\ncommit b405792dc3b827f13689598a40cbfaa3c943ff57\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 11:08:06 2026 +0300\n\n    kyc\n\ncommit c8f90ad6d99d4a8dc377267412d1182c4f867f37\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:58:32 2026 +0300\n\n    kyc\n\ncommit 5771c5c4f1a6b50c3b6afb3fb0af443f9cc007d9\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:53:48 2026 +0300\n\n    kyc\n\ncommit 0188af7df7dcdf54ddbe30e8d3fb830859a7bdd0\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:35:53 2026 +0300\n\n    kyc\n\ncommit db6ec98ce7778b51f34587308c32a92cefe16535\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:26:06 2026 +0300\n\n    kyc\n\ncommit d1831235275295e3a6eb428615bc04be7c4d5ffa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:08:54 2026 +0300\n\n    kyc\n\ncommit 8707c58b87db6b6117cddba7d155f7c8634e2718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:06:00 2026 +0300\n\n    kyc\n\ncommit 885fde5443cdbf430d4de2bfb739f7f4d9d87e3c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:03:34 2026 +0300\n\n    kyc\n\ncommit c4eef7b0187ea2a7e4c6c4509e751e8d4b150e51\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:58:57 2026 +0300\n\n    kyc\n\ncommit fbb538516b74844709f436a6ded7b57a94e3686e\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:54:20 2026 +0300\n\n    kyc\n\ncommit 4e26070d5986773b17278e25979f3551e2b05dc1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:49:52 2026 +0300\n\n    kyc\n\ncommit ec30a82e4108cfd38ad9f7e30f3592b24831aaf1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:42:45 2026 +0300\n\n    kyc\n\ncommit d682b71f48cf7716d6deaa00facdb3dc35b0acf4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:30:27 2026 +0300\n\n    kyc\n\ncommit 18818d3254c523b24677417bb0174e026abb97b5\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:23:08 2026 +0300\n\n    kyc\n\ncommit 046f56877677fa405d3cf8b33d1cd16aed1a0989\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:11:59 2026 +0300\n\n    kyc\n\ncommit 301cd174ce2f8df8b35e52f90a076df1c7f702ff\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:07:48 2026 +0300\n\n    kyc\n\ncommit a0b68a3ac040aebf859ee32de94a6bee792c3b60\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:15:29 2026 +0300\n\n    kyc\n\ncommit 7f7e46adb0f623dc0f369b8cf9f14fcf5d3204f4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:11:14 2026 +0300\n\n    kyc\n\ncommit 12345b6047074625e657467010ee5771333c0c5a\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:52:57 2026 +0300\n\n    kyc\n\ncommit f2a3801e8baea3ba02af248e4c25037cf36a8d65\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:45:30 2026 +0300\n\n    kyc\n\ncommit 888db638284347947527708a80214628543adaa3\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:31:37 2026 +0300\n\n    kyc\n\ncommit dd7335e9c88a9956a55be9a29d4c6fa69451ddad\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:09:17 2026 +0300\n\n    admin\n\ncommit efdc71f618f2a234b27f3212c74a62f65ccd891f\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:55:18 2026 +0300\n\n    cmera\n\ncommit 235dadceb8fcba3460aaf446bc9b9664b07e3c0d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:30:33 2026 +0300\n\n    up\n\ncommit 1131a2735fd7117553d3edc71a3468e8d066c463\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:17:45 2026 +0300\n\n    gg\n\ncommit d2cda5e58c569939aacf11363b956bfe9c490264\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:14:46 2026 +0300\n\n    gg\n\ncommit 0a35c7207892def29c08e9f7f273de1bb4f2e50c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:10:15 2026 +0300\n\n    ch\n\ncommit 5a5f6b07f146f75ec6713f1fad83f84109aff8fa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:03:41 2026 +0300\n\n    ch\n\ncommit ade3a5560c87e89a485bf1a91505988f93b1433d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:53:30 2026 +0300\n\n    gug\n\ncommit 39a6b2de1d0d7764649353cee1a82f4cb165be88\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:52:39 2026 +0300\n\n    ch\n\ncommit 22baeb58ccdf168ea7ef6b29a881ff7a795052d1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:48:17 2026 +0300\n\n    change\n\ncommit 14d5dd14553dc4d70644cba158282610b4db60de\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:44:00 2026 +0300\n\n    chamge\n\ncommit 1499115d2a5b2b2b4e383ffce9c0fc0ca62dd5bb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:41:23 2026 +0300\n\n    change\n\ncommit 8129cd4db26c843a2c908b56a8c8de4ee5281a26\nMerge: 2f2a7f8b d75d1593\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:50:04 2026 +0300\n\n    change\n\ncommit 2f2a7f8b5366556ae9f81aaedc0007343ac0e323\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:34:57 2026 +0300\n\n    update\n\ncommit f0aeb81bd9fea99d8872438f5ca944563e078d02\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:20:00 2026 +0300\n\n    change\n\ncommit 4e5fdc3fb79cb24207923c4d44d773a06500b6fe\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:12:30 2026 +0300\n\n    Update Apex security files and add requirements\n\ncommit d75d1593170e501cd99acdada1568497e0dfab79\nAuthor: Kaivn739 <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:29:44 2026 +0300\n\n    Added Dev Container Folder\n\ncommit e6f0f38c22612d80b6084b6b6e16d7def24bb1c1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:08:44 2026 +0300\n\n    Fast clean upload\n\ncommit f63775ef0b59e00fa0ccc61bfb829eca4dc840a2\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 08:59:23 2026 +0300\n\n    Fresh clean push\n",
             "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:15.421442",
+            "command": "python --version",
+            "return_code": 0,
+            "success": true,
+            "output": "Python 3.11.9\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:15.683754",
+            "command": "where python",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Scripts\\python.exe\nC:\\Users\\hp\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:18.959342",
+            "command": "pip --version",
+            "return_code": 0,
+            "success": true,
+            "output": "pip 26.2.1 from C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Lib\\site-packages\\pip (python 3.11)\n\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.170349",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.439116",
+            "command": "where code",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Program Files\\Microsoft VS Code\\bin\\code\nC:\\Program Files\\Microsoft VS Code\\bin\\code.cmd\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.744746",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.935737",
+            "command": "git branch",
+            "return_code": 0,
+            "success": true,
+            "output": "* main\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-20T19:33:20.163661",
+            "command": "git log",
+            "return_code": 0,
+            "success": true,
+            "output": "commit 5be72b2c9505dcc3e3266673ae03642bab122e9b\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Oct 7 00:03:58 2026 +0300\n\n    new\n\ncommit c931ea9a7358b8d639ac986b240a6b1164563865\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Oct 1 14:03:58 2026 +0300\n\n    kk\n\ncommit 1da0407cfb6248116b03ac815c3f56cf922136b7\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Sep 30 11:29:08 2026 +0300\n\n    nwe\n\ncommit df3210ee1bdcf688ea9f7a5a351cdf881ab5e4cb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 20 13:03:21 2026 +0300\n\n    apex\n\ncommit 008aaae9fe7ec2c93f64ba730ec728adf36a4718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Sep 17 13:06:09 2026 +0300\n\n    apex\n\ncommit fc45c8893179d512ecc91501308a9151e5652a05\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Tue Sep 15 09:20:08 2026 +0300\n\n    apex\n\ncommit a70db051708643e2208996c88a16039177129c99\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 6 13:21:57 2026 +0300\n\n    new idea\n\ncommit b405792dc3b827f13689598a40cbfaa3c943ff57\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 11:08:06 2026 +0300\n\n    kyc\n\ncommit c8f90ad6d99d4a8dc377267412d1182c4f867f37\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:58:32 2026 +0300\n\n    kyc\n\ncommit 5771c5c4f1a6b50c3b6afb3fb0af443f9cc007d9\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:53:48 2026 +0300\n\n    kyc\n\ncommit 0188af7df7dcdf54ddbe30e8d3fb830859a7bdd0\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:35:53 2026 +0300\n\n    kyc\n\ncommit db6ec98ce7778b51f34587308c32a92cefe16535\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:26:06 2026 +0300\n\n    kyc\n\ncommit d1831235275295e3a6eb428615bc04be7c4d5ffa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:08:54 2026 +0300\n\n    kyc\n\ncommit 8707c58b87db6b6117cddba7d155f7c8634e2718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:06:00 2026 +0300\n\n    kyc\n\ncommit 885fde5443cdbf430d4de2bfb739f7f4d9d87e3c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:03:34 2026 +0300\n\n    kyc\n\ncommit c4eef7b0187ea2a7e4c6c4509e751e8d4b150e51\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:58:57 2026 +0300\n\n    kyc\n\ncommit fbb538516b74844709f436a6ded7b57a94e3686e\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:54:20 2026 +0300\n\n    kyc\n\ncommit 4e26070d5986773b17278e25979f3551e2b05dc1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:49:52 2026 +0300\n\n    kyc\n\ncommit ec30a82e4108cfd38ad9f7e30f3592b24831aaf1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:42:45 2026 +0300\n\n    kyc\n\ncommit d682b71f48cf7716d6deaa00facdb3dc35b0acf4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:30:27 2026 +0300\n\n    kyc\n\ncommit 18818d3254c523b24677417bb0174e026abb97b5\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:23:08 2026 +0300\n\n    kyc\n\ncommit 046f56877677fa405d3cf8b33d1cd16aed1a0989\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:11:59 2026 +0300\n\n    kyc\n\ncommit 301cd174ce2f8df8b35e52f90a076df1c7f702ff\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:07:48 2026 +0300\n\n    kyc\n\ncommit a0b68a3ac040aebf859ee32de94a6bee792c3b60\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:15:29 2026 +0300\n\n    kyc\n\ncommit 7f7e46adb0f623dc0f369b8cf9f14fcf5d3204f4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:11:14 2026 +0300\n\n    kyc\n\ncommit 12345b6047074625e657467010ee5771333c0c5a\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:52:57 2026 +0300\n\n    kyc\n\ncommit f2a3801e8baea3ba02af248e4c25037cf36a8d65\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:45:30 2026 +0300\n\n    kyc\n\ncommit 888db638284347947527708a80214628543adaa3\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:31:37 2026 +0300\n\n    kyc\n\ncommit dd7335e9c88a9956a55be9a29d4c6fa69451ddad\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:09:17 2026 +0300\n\n    admin\n\ncommit efdc71f618f2a234b27f3212c74a62f65ccd891f\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:55:18 2026 +0300\n\n    cmera\n\ncommit 235dadceb8fcba3460aaf446bc9b9664b07e3c0d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:30:33 2026 +0300\n\n    up\n\ncommit 1131a2735fd7117553d3edc71a3468e8d066c463\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:17:45 2026 +0300\n\n    gg\n\ncommit d2cda5e58c569939aacf11363b956bfe9c490264\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:14:46 2026 +0300\n\n    gg\n\ncommit 0a35c7207892def29c08e9f7f273de1bb4f2e50c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:10:15 2026 +0300\n\n    ch\n\ncommit 5a5f6b07f146f75ec6713f1fad83f84109aff8fa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:03:41 2026 +0300\n\n    ch\n\ncommit ade3a5560c87e89a485bf1a91505988f93b1433d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:53:30 2026 +0300\n\n    gug\n\ncommit 39a6b2de1d0d7764649353cee1a82f4cb165be88\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:52:39 2026 +0300\n\n    ch\n\ncommit 22baeb58ccdf168ea7ef6b29a881ff7a795052d1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:48:17 2026 +0300\n\n    change\n\ncommit 14d5dd14553dc4d70644cba158282610b4db60de\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:44:00 2026 +0300\n\n    chamge\n\ncommit 1499115d2a5b2b2b4e383ffce9c0fc0ca62dd5bb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:41:23 2026 +0300\n\n    change\n\ncommit 8129cd4db26c843a2c908b56a8c8de4ee5281a26\nMerge: 2f2a7f8b d75d1593\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:50:04 2026 +0300\n\n    change\n\ncommit 2f2a7f8b5366556ae9f81aaedc0007343ac0e323\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:34:57 2026 +0300\n\n    update\n\ncommit f0aeb81bd9fea99d8872438f5ca944563e078d02\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:20:00 2026 +0300\n\n    change\n\ncommit 4e5fdc3fb79cb24207923c4d44d773a06500b6fe\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:12:30 2026 +0300\n\n    Update Apex security files and add requirements\n\ncommit d75d1593170e501cd99acdada1568497e0dfab79\nAuthor: Kaivn739 <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:29:44 2026 +0300\n\n    Added Dev Container Folder\n\ncommit e6f0f38c22612d80b6084b6b6e16d7def24bb1c1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:08:44 2026 +0300\n\n    Fast clean upload\n\ncommit f63775ef0b59e00fa0ccc61bfb829eca4dc840a2\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 08:59:23 2026 +0300\n\n    Fresh clean push\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:33:56.818779",
+            "command": "python --version",
+            "return_code": 0,
+            "success": true,
+            "output": "Python 3.11.9\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:33:57.318443",
+            "command": "where python",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Scripts\\python.exe\nC:\\Users\\hp\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:02.281693",
+            "command": "pip --version",
+            "return_code": 0,
+            "success": true,
+            "output": "pip 26.2.1 from C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Lib\\site-packages\\pip (python 3.11)\n\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:03.570597",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:04.469174",
+            "command": "where code",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Program Files\\Microsoft VS Code\\bin\\code\nC:\\Program Files\\Microsoft VS Code\\bin\\code.cmd\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:05.586836",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:06.011898",
+            "command": "git branch",
+            "return_code": 0,
+            "success": true,
+            "output": "* main\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-23T13:34:06.491416",
+            "command": "git log",
+            "return_code": 0,
+            "success": true,
+            "output": "commit 5be72b2c9505dcc3e3266673ae03642bab122e9b\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Oct 7 00:03:58 2026 +0300\n\n    new\n\ncommit c931ea9a7358b8d639ac986b240a6b1164563865\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Oct 1 14:03:58 2026 +0300\n\n    kk\n\ncommit 1da0407cfb6248116b03ac815c3f56cf922136b7\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Sep 30 11:29:08 2026 +0300\n\n    nwe\n\ncommit df3210ee1bdcf688ea9f7a5a351cdf881ab5e4cb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 20 13:03:21 2026 +0300\n\n    apex\n\ncommit 008aaae9fe7ec2c93f64ba730ec728adf36a4718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Sep 17 13:06:09 2026 +0300\n\n    apex\n\ncommit fc45c8893179d512ecc91501308a9151e5652a05\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Tue Sep 15 09:20:08 2026 +0300\n\n    apex\n\ncommit a70db051708643e2208996c88a16039177129c99\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 6 13:21:57 2026 +0300\n\n    new idea\n\ncommit b405792dc3b827f13689598a40cbfaa3c943ff57\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 11:08:06 2026 +0300\n\n    kyc\n\ncommit c8f90ad6d99d4a8dc377267412d1182c4f867f37\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:58:32 2026 +0300\n\n    kyc\n\ncommit 5771c5c4f1a6b50c3b6afb3fb0af443f9cc007d9\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:53:48 2026 +0300\n\n    kyc\n\ncommit 0188af7df7dcdf54ddbe30e8d3fb830859a7bdd0\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:35:53 2026 +0300\n\n    kyc\n\ncommit db6ec98ce7778b51f34587308c32a92cefe16535\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:26:06 2026 +0300\n\n    kyc\n\ncommit d1831235275295e3a6eb428615bc04be7c4d5ffa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:08:54 2026 +0300\n\n    kyc\n\ncommit 8707c58b87db6b6117cddba7d155f7c8634e2718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:06:00 2026 +0300\n\n    kyc\n\ncommit 885fde5443cdbf430d4de2bfb739f7f4d9d87e3c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:03:34 2026 +0300\n\n    kyc\n\ncommit c4eef7b0187ea2a7e4c6c4509e751e8d4b150e51\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:58:57 2026 +0300\n\n    kyc\n\ncommit fbb538516b74844709f436a6ded7b57a94e3686e\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:54:20 2026 +0300\n\n    kyc\n\ncommit 4e26070d5986773b17278e25979f3551e2b05dc1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:49:52 2026 +0300\n\n    kyc\n\ncommit ec30a82e4108cfd38ad9f7e30f3592b24831aaf1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:42:45 2026 +0300\n\n    kyc\n\ncommit d682b71f48cf7716d6deaa00facdb3dc35b0acf4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:30:27 2026 +0300\n\n    kyc\n\ncommit 18818d3254c523b24677417bb0174e026abb97b5\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:23:08 2026 +0300\n\n    kyc\n\ncommit 046f56877677fa405d3cf8b33d1cd16aed1a0989\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:11:59 2026 +0300\n\n    kyc\n\ncommit 301cd174ce2f8df8b35e52f90a076df1c7f702ff\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:07:48 2026 +0300\n\n    kyc\n\ncommit a0b68a3ac040aebf859ee32de94a6bee792c3b60\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:15:29 2026 +0300\n\n    kyc\n\ncommit 7f7e46adb0f623dc0f369b8cf9f14fcf5d3204f4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:11:14 2026 +0300\n\n    kyc\n\ncommit 12345b6047074625e657467010ee5771333c0c5a\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:52:57 2026 +0300\n\n    kyc\n\ncommit f2a3801e8baea3ba02af248e4c25037cf36a8d65\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:45:30 2026 +0300\n\n    kyc\n\ncommit 888db638284347947527708a80214628543adaa3\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:31:37 2026 +0300\n\n    kyc\n\ncommit dd7335e9c88a9956a55be9a29d4c6fa69451ddad\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:09:17 2026 +0300\n\n    admin\n\ncommit efdc71f618f2a234b27f3212c74a62f65ccd891f\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:55:18 2026 +0300\n\n    cmera\n\ncommit 235dadceb8fcba3460aaf446bc9b9664b07e3c0d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:30:33 2026 +0300\n\n    up\n\ncommit 1131a2735fd7117553d3edc71a3468e8d066c463\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:17:45 2026 +0300\n\n    gg\n\ncommit d2cda5e58c569939aacf11363b956bfe9c490264\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:14:46 2026 +0300\n\n    gg\n\ncommit 0a35c7207892def29c08e9f7f273de1bb4f2e50c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:10:15 2026 +0300\n\n    ch\n\ncommit 5a5f6b07f146f75ec6713f1fad83f84109aff8fa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:03:41 2026 +0300\n\n    ch\n\ncommit ade3a5560c87e89a485bf1a91505988f93b1433d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:53:30 2026 +0300\n\n    gug\n\ncommit 39a6b2de1d0d7764649353cee1a82f4cb165be88\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:52:39 2026 +0300\n\n    ch\n\ncommit 22baeb58ccdf168ea7ef6b29a881ff7a795052d1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:48:17 2026 +0300\n\n    change\n\ncommit 14d5dd14553dc4d70644cba158282610b4db60de\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:44:00 2026 +0300\n\n    chamge\n\ncommit 1499115d2a5b2b2b4e383ffce9c0fc0ca62dd5bb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:41:23 2026 +0300\n\n    change\n\ncommit 8129cd4db26c843a2c908b56a8c8de4ee5281a26\nMerge: 2f2a7f8b d75d1593\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:50:04 2026 +0300\n\n    change\n\ncommit 2f2a7f8b5366556ae9f81aaedc0007343ac0e323\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:34:57 2026 +0300\n\n    update\n\ncommit f0aeb81bd9fea99d8872438f5ca944563e078d02\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:20:00 2026 +0300\n\n    change\n\ncommit 4e5fdc3fb79cb24207923c4d44d773a06500b6fe\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:12:30 2026 +0300\n\n    Update Apex security files and add requirements\n\ncommit d75d1593170e501cd99acdada1568497e0dfab79\nAuthor: Kaivn739 <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:29:44 2026 +0300\n\n    Added Dev Container Folder\n\ncommit e6f0f38c22612d80b6084b6b6e16d7def24bb1c1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:08:44 2026 +0300\n\n    Fast clean upload\n\ncommit f63775ef0b59e00fa0ccc61bfb829eca4dc840a2\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 08:59:23 2026 +0300\n\n    Fresh clean push\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:05.982736",
+            "command": "python --version",
+            "return_code": 0,
+            "success": true,
+            "output": "Python 3.11.9\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:06.844428",
+            "command": "where python",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Scripts\\python.exe\nC:\\Users\\hp\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:12.589252",
+            "command": "pip --version",
+            "return_code": 0,
+            "success": true,
+            "output": "pip 26.2.1 from C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Lib\\site-packages\\pip (python 3.11)\n\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:13.557363",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_developer.py\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261001_131302/__pycache__/\n\t.apex_backups/backup_20261001_133040/__pycache__/\n\t.apex_backups/backup_20261001_135636/__pycache__/\n\t.apex_backups/backup_20261006_230910/__pycache__/\n\t.apex_backups/backup_20261006_231641/__pycache__/\n\t.apex_backups/backup_20261006_231704/__pycache__/\n\t.apex_backups/backup_20261006_231749/__pycache__/\n\t.apex_backups/backup_20261006_232042/__pycache__/\n\t.apex_backups/backup_20261006_232646/__pycache__/\n\t.apex_backups/backup_20261006_232823/__pycache__/\n\t.apex_backups/backup_20261006_232837/__pycache__/\n\t.apex_backups/backup_20261006_232925/__pycache__/\n\t.apex_backups/backup_20261006_233126/__pycache__/\n\t.apex_backups/backup_20261006_234158/__pycache__/\n\t.apex_backups/backup_20261006_234531/__pycache__/\n\t.apex_backups/backup_20261006_234557_release/__pycache__/\n\t.apex_backups/backup_20261006_234704_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\t.apex_backups/backup_20261023_133406_650990_release/\n\t__pycache__/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_developer.py.step5_before_fix.bak\n\tapex_developer.py.step5_safety_20261027_184112.bak\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\trun_step5_isolated_test.py\n\ttest_step5_safe_fix.py\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:14.250201",
+            "command": "where code",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Program Files\\Microsoft VS Code\\bin\\code\nC:\\Program Files\\Microsoft VS Code\\bin\\code.cmd\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:15.345100",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_developer.py\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261001_131302/__pycache__/\n\t.apex_backups/backup_20261001_133040/__pycache__/\n\t.apex_backups/backup_20261001_135636/__pycache__/\n\t.apex_backups/backup_20261006_230910/__pycache__/\n\t.apex_backups/backup_20261006_231641/__pycache__/\n\t.apex_backups/backup_20261006_231704/__pycache__/\n\t.apex_backups/backup_20261006_231749/__pycache__/\n\t.apex_backups/backup_20261006_232042/__pycache__/\n\t.apex_backups/backup_20261006_232646/__pycache__/\n\t.apex_backups/backup_20261006_232823/__pycache__/\n\t.apex_backups/backup_20261006_232837/__pycache__/\n\t.apex_backups/backup_20261006_232925/__pycache__/\n\t.apex_backups/backup_20261006_233126/__pycache__/\n\t.apex_backups/backup_20261006_234158/__pycache__/\n\t.apex_backups/backup_20261006_234531/__pycache__/\n\t.apex_backups/backup_20261006_234557_release/__pycache__/\n\t.apex_backups/backup_20261006_234704_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\t.apex_backups/backup_20261023_133406_650990_release/\n\t__pycache__/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_developer.py.step5_before_fix.bak\n\tapex_developer.py.step5_safety_20261027_184112.bak\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\trun_step5_isolated_test.py\n\ttest_step5_safe_fix.py\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:15.979941",
+            "command": "git branch",
+            "return_code": 0,
+            "success": true,
+            "output": "* main\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-10-30T14:44:16.714254",
+            "command": "git log",
+            "return_code": 0,
+            "success": true,
+            "output": "commit 5be72b2c9505dcc3e3266673ae03642bab122e9b\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Oct 7 00:03:58 2026 +0300\n\n    new\n\ncommit c931ea9a7358b8d639ac986b240a6b1164563865\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Oct 1 14:03:58 2026 +0300\n\n    kk\n\ncommit 1da0407cfb6248116b03ac815c3f56cf922136b7\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Sep 30 11:29:08 2026 +0300\n\n    nwe\n\ncommit df3210ee1bdcf688ea9f7a5a351cdf881ab5e4cb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 20 13:03:21 2026 +0300\n\n    apex\n\ncommit 008aaae9fe7ec2c93f64ba730ec728adf36a4718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Sep 17 13:06:09 2026 +0300\n\n    apex\n\ncommit fc45c8893179d512ecc91501308a9151e5652a05\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Tue Sep 15 09:20:08 2026 +0300\n\n    apex\n\ncommit a70db051708643e2208996c88a16039177129c99\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 6 13:21:57 2026 +0300\n\n    new idea\n\ncommit b405792dc3b827f13689598a40cbfaa3c943ff57\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 11:08:06 2026 +0300\n\n    kyc\n\ncommit c8f90ad6d99d4a8dc377267412d1182c4f867f37\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:58:32 2026 +0300\n\n    kyc\n\ncommit 5771c5c4f1a6b50c3b6afb3fb0af443f9cc007d9\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:53:48 2026 +0300\n\n    kyc\n\ncommit 0188af7df7dcdf54ddbe30e8d3fb830859a7bdd0\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:35:53 2026 +0300\n\n    kyc\n\ncommit db6ec98ce7778b51f34587308c32a92cefe16535\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:26:06 2026 +0300\n\n    kyc\n\ncommit d1831235275295e3a6eb428615bc04be7c4d5ffa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:08:54 2026 +0300\n\n    kyc\n\ncommit 8707c58b87db6b6117cddba7d155f7c8634e2718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:06:00 2026 +0300\n\n    kyc\n\ncommit 885fde5443cdbf430d4de2bfb739f7f4d9d87e3c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:03:34 2026 +0300\n\n    kyc\n\ncommit c4eef7b0187ea2a7e4c6c4509e751e8d4b150e51\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:58:57 2026 +0300\n\n    kyc\n\ncommit fbb538516b74844709f436a6ded7b57a94e3686e\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:54:20 2026 +0300\n\n    kyc\n\ncommit 4e26070d5986773b17278e25979f3551e2b05dc1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:49:52 2026 +0300\n\n    kyc\n\ncommit ec30a82e4108cfd38ad9f7e30f3592b24831aaf1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:42:45 2026 +0300\n\n    kyc\n\ncommit d682b71f48cf7716d6deaa00facdb3dc35b0acf4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:30:27 2026 +0300\n\n    kyc\n\ncommit 18818d3254c523b24677417bb0174e026abb97b5\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:23:08 2026 +0300\n\n    kyc\n\ncommit 046f56877677fa405d3cf8b33d1cd16aed1a0989\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:11:59 2026 +0300\n\n    kyc\n\ncommit 301cd174ce2f8df8b35e52f90a076df1c7f702ff\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:07:48 2026 +0300\n\n    kyc\n\ncommit a0b68a3ac040aebf859ee32de94a6bee792c3b60\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:15:29 2026 +0300\n\n    kyc\n\ncommit 7f7e46adb0f623dc0f369b8cf9f14fcf5d3204f4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:11:14 2026 +0300\n\n    kyc\n\ncommit 12345b6047074625e657467010ee5771333c0c5a\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:52:57 2026 +0300\n\n    kyc\n\ncommit f2a3801e8baea3ba02af248e4c25037cf36a8d65\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:45:30 2026 +0300\n\n    kyc\n\ncommit 888db638284347947527708a80214628543adaa3\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:31:37 2026 +0300\n\n    kyc\n\ncommit dd7335e9c88a9956a55be9a29d4c6fa69451ddad\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:09:17 2026 +0300\n\n    admin\n\ncommit efdc71f618f2a234b27f3212c74a62f65ccd891f\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:55:18 2026 +0300\n\n    cmera\n\ncommit 235dadceb8fcba3460aaf446bc9b9664b07e3c0d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:30:33 2026 +0300\n\n    up\n\ncommit 1131a2735fd7117553d3edc71a3468e8d066c463\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:17:45 2026 +0300\n\n    gg\n\ncommit d2cda5e58c569939aacf11363b956bfe9c490264\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:14:46 2026 +0300\n\n    gg\n\ncommit 0a35c7207892def29c08e9f7f273de1bb4f2e50c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:10:15 2026 +0300\n\n    ch\n\ncommit 5a5f6b07f146f75ec6713f1fad83f84109aff8fa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:03:41 2026 +0300\n\n    ch\n\ncommit ade3a5560c87e89a485bf1a91505988f93b1433d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:53:30 2026 +0300\n\n    gug\n\ncommit 39a6b2de1d0d7764649353cee1a82f4cb165be88\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:52:39 2026 +0300\n\n    ch\n\ncommit 22baeb58ccdf168ea7ef6b29a881ff7a795052d1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:48:17 2026 +0300\n\n    change\n\ncommit 14d5dd14553dc4d70644cba158282610b4db60de\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:44:00 2026 +0300\n\n    chamge\n\ncommit 1499115d2a5b2b2b4e383ffce9c0fc0ca62dd5bb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:41:23 2026 +0300\n\n    change\n\ncommit 8129cd4db26c843a2c908b56a8c8de4ee5281a26\nMerge: 2f2a7f8b d75d1593\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:50:04 2026 +0300\n\n    change\n\ncommit 2f2a7f8b5366556ae9f81aaedc0007343ac0e323\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:34:57 2026 +0300\n\n    update\n\ncommit f0aeb81bd9fea99d8872438f5ca944563e078d02\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:20:00 2026 +0300\n\n    change\n\ncommit 4e5fdc3fb79cb24207923c4d44d773a06500b6fe\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:12:30 2026 +0300\n\n    Update Apex security files and add requirements\n\ncommit d75d1593170e501cd99acdada1568497e0dfab79\nAuthor: Kaivn739 <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:29:44 2026 +0300\n\n    Added Dev Container Folder\n\ncommit e6f0f38c22612d80b6084b6b6e16d7def24bb1c1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:08:44 2026 +0300\n\n    Fast clean upload\n\ncommit f63775ef0b59e00fa0ccc61bfb829eca4dc840a2\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 08:59:23 2026 +0300\n\n    Fresh clean push\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:56:51.401137",
+            "command": "python --version",
+            "return_code": 0,
+            "success": true,
+            "output": "Python 3.11.9\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:56:56.712176",
+            "command": "where python",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Scripts\\python.exe\nC:\\Users\\hp\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:05.170550",
+            "command": "pip --version",
+            "return_code": 0,
+            "success": true,
+            "output": "pip 26.2.1 from C:\\Users\\hp\\OneDrive\\Desktop\\apex\\venv\\Lib\\site-packages\\pip (python 3.11)\n\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:06.316486",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_developer.py\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261001_131302/__pycache__/\n\t.apex_backups/backup_20261001_133040/__pycache__/\n\t.apex_backups/backup_20261001_135636/__pycache__/\n\t.apex_backups/backup_20261006_230910/__pycache__/\n\t.apex_backups/backup_20261006_231641/__pycache__/\n\t.apex_backups/backup_20261006_231704/__pycache__/\n\t.apex_backups/backup_20261006_231749/__pycache__/\n\t.apex_backups/backup_20261006_232042/__pycache__/\n\t.apex_backups/backup_20261006_232646/__pycache__/\n\t.apex_backups/backup_20261006_232823/__pycache__/\n\t.apex_backups/backup_20261006_232837/__pycache__/\n\t.apex_backups/backup_20261006_232925/__pycache__/\n\t.apex_backups/backup_20261006_233126/__pycache__/\n\t.apex_backups/backup_20261006_234158/__pycache__/\n\t.apex_backups/backup_20261006_234531/__pycache__/\n\t.apex_backups/backup_20261006_234557_release/__pycache__/\n\t.apex_backups/backup_20261006_234704_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\t.apex_backups/backup_20261023_133406_650990_release/\n\t.apex_backups/backup_20261030_144416_988412_release/\n\t__pycache__/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_developer.py.step5_before_fix.bak\n\tapex_developer.py.step5_safety_20261027_184112.bak\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\trun_step5_isolated_test.py\n\ttest_step5_safe_fix.py\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:07.399589",
+            "command": "where code",
+            "return_code": 0,
+            "success": true,
+            "output": "C:\\Program Files\\Microsoft VS Code\\bin\\code\nC:\\Program Files\\Microsoft VS Code\\bin\\code.cmd\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:12.639415",
+            "command": "git status",
+            "return_code": 0,
+            "success": true,
+            "output": "On branch main\nYour branch is ahead of 'origin/main' by 2 commits.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .vscode/settings.json\n\tmodified:   apex_developer.py\n\tmodified:   apex_release_manifest.json\n\tmodified:   developer_memory.json\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.apex_backups/backup_20261001_131302/__pycache__/\n\t.apex_backups/backup_20261001_133040/__pycache__/\n\t.apex_backups/backup_20261001_135636/__pycache__/\n\t.apex_backups/backup_20261006_230910/__pycache__/\n\t.apex_backups/backup_20261006_231641/__pycache__/\n\t.apex_backups/backup_20261006_231704/__pycache__/\n\t.apex_backups/backup_20261006_231749/__pycache__/\n\t.apex_backups/backup_20261006_232042/__pycache__/\n\t.apex_backups/backup_20261006_232646/__pycache__/\n\t.apex_backups/backup_20261006_232823/__pycache__/\n\t.apex_backups/backup_20261006_232837/__pycache__/\n\t.apex_backups/backup_20261006_232925/__pycache__/\n\t.apex_backups/backup_20261006_233126/__pycache__/\n\t.apex_backups/backup_20261006_234158/__pycache__/\n\t.apex_backups/backup_20261006_234531/__pycache__/\n\t.apex_backups/backup_20261006_234557_release/__pycache__/\n\t.apex_backups/backup_20261006_234704_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/__pycache__/\n\t.apex_backups/backup_20261006_235609_651047_release/apex_rendered_ai_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_route_a_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/apex_security.db\n\t.apex_backups/backup_20261006_235609_651047_release/apex_standalone_test_video.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/assistant.py\n\t.apex_backups/backup_20261006_235609_651047_release/auth.py\n\t.apex_backups/backup_20261006_235609_651047_release/camera1.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/camera_config_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/cameras.py\n\t.apex_backups/backup_20261006_235609_651047_release/dashboard.py\n\t.apex_backups/backup_20261006_235609_651047_release/database.py\n\t.apex_backups/backup_20261006_235609_651047_release/developer_memory.json\n\t.apex_backups/backup_20261006_235609_651047_release/dragon_bg.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/dvr_live_test.jpg\n\t.apex_backups/backup_20261006_235609_651047_release/emergency_alerts_view.py\n\t.apex_backups/backup_20261006_235609_651047_release/face_recognizer.py\n\t.apex_backups/backup_20261006_235609_651047_release/import base64.py\n\t.apex_backups/backup_20261006_235609_651047_release/kyc_engine.py\n\t.apex_backups/backup_20261006_235609_651047_release/map_tracker.py\n\t.apex_backups/backup_20261006_235609_651047_release/requirements.txt\n\t.apex_backups/backup_20261006_235609_651047_release/run_app.py\n\t.apex_backups/backup_20261006_235609_651047_release/screen_analyzer.py\n\t.apex_backups/backup_20261006_235609_651047_release/style.py\n\t.apex_backups/backup_20261006_235609_651047_release/system_health.py\n\t.apex_backups/backup_20261006_235609_651047_release/targets/\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_live.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_dvr_window.py\n\t.apex_backups/backup_20261006_235609_651047_release/test_video_cam_1.mp4\n\t.apex_backups/backup_20261006_235609_651047_release/venv_old/\n\t.apex_backups/backup_20261006_235609_651047_release/video_lab.py\n\t.apex_backups/backup_20261020_193320_269375_release/\n\t.apex_backups/backup_20261023_133406_650990_release/\n\t.apex_backups/backup_20261030_144416_988412_release/\n\t__pycache__/\n\tapex_active_lab_video.mp4\n\tapex_ai_processed_video.mp4\n\tapex_change_plan.json\n\tapex_developer.py.step5_before_fix.bak\n\tapex_developer.py.step5_safety_20261027_184112.bak\n\tapex_embedded_input_video.mp4\n\tapex_enterprise_lab_video.mp4\n\tapex_fast_lab_video.mp4\n\tapex_fast_test_video.mp4\n\tapex_high_fps_video.mp4\n\tapex_high_res_video.mp4\n\tapex_isolated_test_video.mp4\n\tapex_managed_video_lab.mp4\n\tapex_opt_roi_video.mp4\n\tapex_production_lab_video.mp4\n\tapex_pure_display_video.mp4\n\tapex_raw_input.mp4\n\tapex_raw_video_lab.mp4\n\tapex_rendered_ai_video.mp4\n\tapex_route_a_video.mp4\n\tapex_standalone_test_video.mp4\n\trun_step5_isolated_test.py\n\ttest_step5_safe_fix.py\n\ttest_video_cam_1.mp4\n\tvenv_old/__pycache__/\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:16.454818",
+            "command": "git branch",
+            "return_code": 0,
+            "success": true,
+            "output": "* main\n",
+            "error": ""
+        },
+        {
+            "timestamp": "2026-11-03T21:57:19.485520",
+            "command": "git log",
+            "return_code": 0,
+            "success": true,
+            "output": "commit 5be72b2c9505dcc3e3266673ae03642bab122e9b\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Oct 7 00:03:58 2026 +0300\n\n    new\n\ncommit c931ea9a7358b8d639ac986b240a6b1164563865\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Oct 1 14:03:58 2026 +0300\n\n    kk\n\ncommit 1da0407cfb6248116b03ac815c3f56cf922136b7\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Wed Sep 30 11:29:08 2026 +0300\n\n    nwe\n\ncommit df3210ee1bdcf688ea9f7a5a351cdf881ab5e4cb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 20 13:03:21 2026 +0300\n\n    apex\n\ncommit 008aaae9fe7ec2c93f64ba730ec728adf36a4718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Thu Sep 17 13:06:09 2026 +0300\n\n    apex\n\ncommit fc45c8893179d512ecc91501308a9151e5652a05\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Tue Sep 15 09:20:08 2026 +0300\n\n    apex\n\ncommit a70db051708643e2208996c88a16039177129c99\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Sep 6 13:21:57 2026 +0300\n\n    new idea\n\ncommit b405792dc3b827f13689598a40cbfaa3c943ff57\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 11:08:06 2026 +0300\n\n    kyc\n\ncommit c8f90ad6d99d4a8dc377267412d1182c4f867f37\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:58:32 2026 +0300\n\n    kyc\n\ncommit 5771c5c4f1a6b50c3b6afb3fb0af443f9cc007d9\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:53:48 2026 +0300\n\n    kyc\n\ncommit 0188af7df7dcdf54ddbe30e8d3fb830859a7bdd0\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:35:53 2026 +0300\n\n    kyc\n\ncommit db6ec98ce7778b51f34587308c32a92cefe16535\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Mon Aug 31 10:26:06 2026 +0300\n\n    kyc\n\ncommit d1831235275295e3a6eb428615bc04be7c4d5ffa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:08:54 2026 +0300\n\n    kyc\n\ncommit 8707c58b87db6b6117cddba7d155f7c8634e2718\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:06:00 2026 +0300\n\n    kyc\n\ncommit 885fde5443cdbf430d4de2bfb739f7f4d9d87e3c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 14:03:34 2026 +0300\n\n    kyc\n\ncommit c4eef7b0187ea2a7e4c6c4509e751e8d4b150e51\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:58:57 2026 +0300\n\n    kyc\n\ncommit fbb538516b74844709f436a6ded7b57a94e3686e\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:54:20 2026 +0300\n\n    kyc\n\ncommit 4e26070d5986773b17278e25979f3551e2b05dc1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:49:52 2026 +0300\n\n    kyc\n\ncommit ec30a82e4108cfd38ad9f7e30f3592b24831aaf1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:42:45 2026 +0300\n\n    kyc\n\ncommit d682b71f48cf7716d6deaa00facdb3dc35b0acf4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:30:27 2026 +0300\n\n    kyc\n\ncommit 18818d3254c523b24677417bb0174e026abb97b5\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:23:08 2026 +0300\n\n    kyc\n\ncommit 046f56877677fa405d3cf8b33d1cd16aed1a0989\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:11:59 2026 +0300\n\n    kyc\n\ncommit 301cd174ce2f8df8b35e52f90a076df1c7f702ff\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 13:07:48 2026 +0300\n\n    kyc\n\ncommit a0b68a3ac040aebf859ee32de94a6bee792c3b60\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:15:29 2026 +0300\n\n    kyc\n\ncommit 7f7e46adb0f623dc0f369b8cf9f14fcf5d3204f4\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 12:11:14 2026 +0300\n\n    kyc\n\ncommit 12345b6047074625e657467010ee5771333c0c5a\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:52:57 2026 +0300\n\n    kyc\n\ncommit f2a3801e8baea3ba02af248e4c25037cf36a8d65\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:45:30 2026 +0300\n\n    kyc\n\ncommit 888db638284347947527708a80214628543adaa3\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:31:37 2026 +0300\n\n    kyc\n\ncommit dd7335e9c88a9956a55be9a29d4c6fa69451ddad\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 11:09:17 2026 +0300\n\n    admin\n\ncommit efdc71f618f2a234b27f3212c74a62f65ccd891f\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:55:18 2026 +0300\n\n    cmera\n\ncommit 235dadceb8fcba3460aaf446bc9b9664b07e3c0d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sun Aug 30 10:30:33 2026 +0300\n\n    up\n\ncommit 1131a2735fd7117553d3edc71a3468e8d066c463\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:17:45 2026 +0300\n\n    gg\n\ncommit d2cda5e58c569939aacf11363b956bfe9c490264\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:14:46 2026 +0300\n\n    gg\n\ncommit 0a35c7207892def29c08e9f7f273de1bb4f2e50c\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:10:15 2026 +0300\n\n    ch\n\ncommit 5a5f6b07f146f75ec6713f1fad83f84109aff8fa\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 13:03:41 2026 +0300\n\n    ch\n\ncommit ade3a5560c87e89a485bf1a91505988f93b1433d\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:53:30 2026 +0300\n\n    gug\n\ncommit 39a6b2de1d0d7764649353cee1a82f4cb165be88\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:52:39 2026 +0300\n\n    ch\n\ncommit 22baeb58ccdf168ea7ef6b29a881ff7a795052d1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:48:17 2026 +0300\n\n    change\n\ncommit 14d5dd14553dc4d70644cba158282610b4db60de\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:44:00 2026 +0300\n\n    chamge\n\ncommit 1499115d2a5b2b2b4e383ffce9c0fc0ca62dd5bb\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 12:41:23 2026 +0300\n\n    change\n\ncommit 8129cd4db26c843a2c908b56a8c8de4ee5281a26\nMerge: 2f2a7f8b d75d1593\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:50:04 2026 +0300\n\n    change\n\ncommit 2f2a7f8b5366556ae9f81aaedc0007343ac0e323\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:34:57 2026 +0300\n\n    update\n\ncommit f0aeb81bd9fea99d8872438f5ca944563e078d02\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:20:00 2026 +0300\n\n    change\n\ncommit 4e5fdc3fb79cb24207923c4d44d773a06500b6fe\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 11:12:30 2026 +0300\n\n    Update Apex security files and add requirements\n\ncommit d75d1593170e501cd99acdada1568497e0dfab79\nAuthor: Kaivn739 <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:29:44 2026 +0300\n\n    Added Dev Container Folder\n\ncommit e6f0f38c22612d80b6084b6b6e16d7def24bb1c1\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 09:08:44 2026 +0300\n\n    Fast clean upload\n\ncommit f63775ef0b59e00fa0ccc61bfb829eca4dc840a2\nAuthor: ismail <123kaivn123@gmail.com>\nDate:   Sat Aug 29 08:59:23 2026 +0300\n\n    Fresh clean push\n",
+            "error": ""
         }
     ],
     "version": "5.0.0",
@@ -3409,6 +3760,38 @@
             "git_log": true,
             "clean_worktree": false,
             "automatic_push": false
+        },
+        {
+            "timestamp": "2026-10-20T19:33:20.207541",
+            "git_status": true,
+            "git_branch": true,
+            "git_log": true,
+            "clean_worktree": false,
+            "automatic_push": false
+        },
+        {
+            "timestamp": "2026-10-23T13:34:06.571211",
+            "git_status": true,
+            "git_branch": true,
+            "git_log": true,
+            "clean_worktree": false,
+            "automatic_push": false
+        },
+        {
+            "timestamp": "2026-10-30T14:44:16.818887",
+            "git_status": true,
+            "git_branch": true,
+            "git_log": true,
+            "clean_worktree": false,
+            "automatic_push": false
+        },
+        {
+            "timestamp": "2026-11-03T21:57:20.584581",
+            "git_status": true,
+            "git_branch": true,
+            "git_log": true,
+            "clean_worktree": false,
+            "automatic_push": false
         }
     ],
     "release_preparations": [
@@ -3552,6 +3935,38 @@
             "timestamp": "2026-10-06T23:56:09.991333",
             "prepared": true,
             "backup": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261006_235609_651047_release",
+            "manifest": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_release_manifest.json",
+            "push_required": false,
+            "production_change": false
+        },
+        {
+            "timestamp": "2026-10-20T19:33:21.185445",
+            "prepared": true,
+            "backup": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261020_193320_269375_release",
+            "manifest": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_release_manifest.json",
+            "push_required": false,
+            "production_change": false
+        },
+        {
+            "timestamp": "2026-10-23T13:34:08.366915",
+            "prepared": true,
+            "backup": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261023_133406_650990_release",
+            "manifest": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_release_manifest.json",
+            "push_required": false,
+            "production_change": false
+        },
+        {
+            "timestamp": "2026-10-30T14:44:18.758677",
+            "prepared": true,
+            "backup": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261030_144416_988412_release",
+            "manifest": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_release_manifest.json",
+            "push_required": false,
+            "production_change": false
+        },
+        {
+            "timestamp": "2026-11-03T21:57:25.036673",
+            "prepared": true,
+            "backup": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\.apex_backups\\backup_20261103_215721_059402_release",
             "manifest": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_release_manifest.json",
             "push_required": false,
             "production_change": false
@@ -5261,6 +5676,187 @@
                 }
             ],
             "automatic_action": false
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.497839",
+            "developer_version": "9.0.0",
+            "duration_seconds": 0.015,
+            "status": "warning",
+            "application_health": {
+                "status": "healthy",
+                "python": "3.11.9",
+                "os": "Windows",
+                "machine": "AMD64",
+                "project_exists": true,
+                "memory_file": true
+            },
+            "memory": {
+                "available": true,
+                "load_percent": 86,
+                "total_gb": 7.88,
+                "available_gb": 1.07,
+                "used_gb": 6.81
+            },
+            "disk": {
+                "available": true,
+                "total_gb": 168.79,
+                "used_gb": 109.44,
+                "free_gb": 59.36,
+                "used_percent": 64.83
+            },
+            "log_files_checked": 1,
+            "logs": [
+                {
+                    "file": "requirements.txt",
+                    "errors": 0,
+                    "warnings": 0,
+                    "critical": 0,
+                    "matches": []
+                }
+            ],
+            "alerts": [
+                {
+                    "level": "warning",
+                    "type": "memory",
+                    "message": "Physical memory usage is high.",
+                    "value": 86
+                }
+            ],
+            "automatic_action": false
+        },
+        {
+            "timestamp": "2026-10-23T13:34:04.770270",
+            "developer_version": "9.0.0",
+            "duration_seconds": 0.035,
+            "status": "warning",
+            "application_health": {
+                "status": "healthy",
+                "python": "3.11.9",
+                "os": "Windows",
+                "machine": "AMD64",
+                "project_exists": true,
+                "memory_file": true
+            },
+            "memory": {
+                "available": true,
+                "load_percent": 84,
+                "total_gb": 7.88,
+                "available_gb": 1.18,
+                "used_gb": 6.7
+            },
+            "disk": {
+                "available": true,
+                "total_gb": 168.79,
+                "used_gb": 107.94,
+                "free_gb": 60.85,
+                "used_percent": 63.95
+            },
+            "log_files_checked": 1,
+            "logs": [
+                {
+                    "file": "requirements.txt",
+                    "errors": 0,
+                    "warnings": 0,
+                    "critical": 0,
+                    "matches": []
+                }
+            ],
+            "alerts": [
+                {
+                    "level": "warning",
+                    "type": "memory",
+                    "message": "Physical memory usage is high.",
+                    "value": 84
+                }
+            ],
+            "automatic_action": false
+        },
+        {
+            "timestamp": "2026-10-30T14:44:14.580350",
+            "developer_version": "9.0.0",
+            "duration_seconds": 0.061,
+            "status": "healthy",
+            "application_health": {
+                "status": "healthy",
+                "python": "3.11.9",
+                "os": "Windows",
+                "machine": "AMD64",
+                "project_exists": true,
+                "memory_file": true
+            },
+            "memory": {
+                "available": true,
+                "load_percent": 73,
+                "total_gb": 7.88,
+                "available_gb": 2.06,
+                "used_gb": 5.82
+            },
+            "disk": {
+                "available": true,
+                "total_gb": 168.79,
+                "used_gb": 106.05,
+                "free_gb": 62.75,
+                "used_percent": 62.83
+            },
+            "log_files_checked": 1,
+            "logs": [
+                {
+                    "file": "requirements.txt",
+                    "errors": 0,
+                    "warnings": 0,
+                    "critical": 0,
+                    "matches": []
+                }
+            ],
+            "alerts": [],
+            "automatic_action": false
+        },
+        {
+            "timestamp": "2026-11-03T21:57:07.843402",
+            "developer_version": "9.0.0",
+            "duration_seconds": 0.049,
+            "status": "warning",
+            "application_health": {
+                "status": "healthy",
+                "python": "3.11.9",
+                "os": "Windows",
+                "machine": "AMD64",
+                "project_exists": true,
+                "memory_file": true
+            },
+            "memory": {
+                "available": true,
+                "load_percent": 83,
+                "total_gb": 7.88,
+                "available_gb": 1.31,
+                "used_gb": 6.57
+            },
+            "disk": {
+                "available": true,
+                "total_gb": 168.79,
+                "used_gb": 107.01,
+                "free_gb": 61.78,
+                "used_percent": 63.4
+            },
+            "log_files_checked": 1,
+            "logs": [
+                {
+                    "file": "requirements.txt",
+                    "errors": 0,
+                    "warnings": 0,
+                    "critical": 0,
+                    "matches": []
+                }
+            ],
+            "alerts": [
+                {
+                    "level": "warning",
+                    "type": "memory",
+                    "message": "Physical memory usage is high.",
+                    "value": 83
+                }
+            ],
+            "automatic_action": false
         }
     ],
     "monitoring_alerts": [
@@ -5383,11 +5979,29 @@
             "type": "memory",
             "message": "Physical memory usage is high.",
             "value": 85
+        },
+        {
+            "level": "warning",
+            "type": "memory",
+            "message": "Physical memory usage is high.",
+            "value": 86
+        },
+        {
+            "level": "warning",
+            "type": "memory",
+            "message": "Physical memory usage is high.",
+            "value": 84
+        },
+        {
+            "level": "warning",
+            "type": "memory",
+            "message": "Physical memory usage is high.",
+            "value": 83
         }
     ],
     "schema_version": 3,
     "developer_version": "9.0.0",
-    "updated_at": "2026-10-06T23:56:10.186337",
+    "updated_at": "2026-11-03T21:57:27.684714",
     "import_runtime_checks": [
         {
             "file": "admin.py",
@@ -5495,6 +6109,11 @@
             "message": "Runtime execution skipped for safety. AST import analysis completed."
         },
         {
+            "file": "run_step5_isolated_test.py",
+            "status": "not_executed",
+            "message": "Runtime execution skipped for safety. AST import analysis completed."
+        },
+        {
             "file": "screen_analyzer.py",
             "status": "not_executed",
             "message": "Runtime execution skipped for safety. AST import analysis completed."
@@ -5516,6 +6135,11 @@
         },
         {
             "file": "test_dvr_window.py",
+            "status": "not_executed",
+            "message": "Runtime execution skipped for safety. AST import analysis completed."
+        },
+        {
+            "file": "test_step5_safe_fix.py",
             "status": "not_executed",
             "message": "Runtime execution skipped for safety. AST import analysis completed."
         },
@@ -5558,6 +6182,39 @@
                     "message": "Memory pressure detected. No unsafe automatic action was performed."
                 }
             ]
+        },
+        {
+            "timestamp": "2026-10-20T19:33:19.539728",
+            "actions_count": 1,
+            "details": [
+                {
+                    "type": "memory_alert",
+                    "status": "observed",
+                    "message": "Memory pressure detected. No unsafe automatic action was performed."
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-10-23T13:34:04.880898",
+            "actions_count": 1,
+            "details": [
+                {
+                    "type": "memory_alert",
+                    "status": "observed",
+                    "message": "Memory pressure detected. No unsafe automatic action was performed."
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-11-03T21:57:08.174515",
+            "actions_count": 1,
+            "details": [
+                {
+                    "type": "memory_alert",
+                    "status": "observed",
+                    "message": "Memory pressure detected. No unsafe automatic action was performed."
+                }
+            ]
         }
     ],
     "deployments": [
@@ -5589,6 +6246,62 @@
         },
         {
             "timestamp": "2026-10-06T23:56:10.038207",
+            "developer_version": "9.0.0",
+            "ready_for_release": true,
+            "syntax_errors": 0,
+            "import_errors": 0,
+            "remediations_observed": 1,
+            "monitoring_status": "warning",
+            "release_prepared": true,
+            "deployment_performed": false,
+            "production_changed": false,
+            "git_push_performed": false,
+            "status": "READY_FOR_DEPLOYMENT"
+        },
+        {
+            "timestamp": "2026-10-20T19:33:21.231097",
+            "developer_version": "9.0.0",
+            "ready_for_release": true,
+            "syntax_errors": 0,
+            "import_errors": 0,
+            "remediations_observed": 1,
+            "monitoring_status": "warning",
+            "release_prepared": true,
+            "deployment_performed": false,
+            "production_changed": false,
+            "git_push_performed": false,
+            "status": "READY_FOR_DEPLOYMENT"
+        },
+        {
+            "timestamp": "2026-10-23T13:34:08.795583",
+            "developer_version": "9.0.0",
+            "ready_for_release": true,
+            "syntax_errors": 0,
+            "import_errors": 0,
+            "remediations_observed": 1,
+            "monitoring_status": "warning",
+            "release_prepared": true,
+            "deployment_performed": false,
+            "production_changed": false,
+            "git_push_performed": false,
+            "status": "READY_FOR_DEPLOYMENT"
+        },
+        {
+            "timestamp": "2026-10-30T14:44:19.641318",
+            "developer_version": "9.0.0",
+            "ready_for_release": true,
+            "syntax_errors": 0,
+            "import_errors": 0,
+            "remediations_observed": 0,
+            "monitoring_status": "healthy",
+            "release_prepared": true,
+            "deployment_performed": false,
+            "production_changed": false,
+            "git_push_performed": false,
+            "status": "READY_FOR_DEPLOYMENT"
+        },
+        {
+            "timestamp": "2026-11-03T21:57:25.931559",
             "developer_version": "9.0.0",
             "ready_for_release": true,
             "syntax_errors": 0,
@@ -5716,6 +6429,174 @@
                 "source_modified": false,
                 "approval_required": true
             }
+        },
+        {
+            "developer_version": "9.0.0",
+            "timestamp": "2026-10-20T19:33:21.267984",
+            "project": {
+                "root": "C:\\Users\\hp\\OneDrive\\Desktop\\apex",
+                "files": 63,
+                "folders": 8
+            },
+            "validation": {
+                "syntax_errors": 0,
+                "import_analysis_errors": 0,
+                "health": "healthy"
+            },
+            "monitoring": {
+                "status": "warning",
+                "alerts": 1
+            },
+            "remediation": {
+                "actions": 1
+            },
+            "deployment_gate": {
+                "status": "READY_FOR_DEPLOYMENT",
+                "performed": false
+            },
+            "next_stage_ready": true,
+            "release_prepared": true,
+            "git": {
+                "git_status": true,
+                "git_branch": true,
+                "git_log": true,
+                "clean_worktree": false,
+                "automatic_push": false
+            },
+            "vscode": true,
+            "duration_seconds": 6.623,
+            "step_9": {
+                "status": "READY_FOR_APPROVAL",
+                "plan_file": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_change_plan.json",
+                "source_modified": false,
+                "approval_required": true
+            }
+        },
+        {
+            "developer_version": "9.0.0",
+            "timestamp": "2026-10-23T13:34:09.049965",
+            "project": {
+                "root": "C:\\Users\\hp\\OneDrive\\Desktop\\apex",
+                "files": 63,
+                "folders": 8
+            },
+            "validation": {
+                "syntax_errors": 0,
+                "import_analysis_errors": 0,
+                "health": "healthy"
+            },
+            "monitoring": {
+                "status": "warning",
+                "alerts": 1
+            },
+            "remediation": {
+                "actions": 1
+            },
+            "deployment_gate": {
+                "status": "READY_FOR_DEPLOYMENT",
+                "performed": false
+            },
+            "next_stage_ready": true,
+            "release_prepared": true,
+            "git": {
+                "git_status": true,
+                "git_branch": true,
+                "git_log": true,
+                "clean_worktree": false,
+                "automatic_push": false
+            },
+            "vscode": true,
+            "duration_seconds": 16.95,
+            "step_9": {
+                "status": "READY_FOR_APPROVAL",
+                "plan_file": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_change_plan.json",
+                "source_modified": false,
+                "approval_required": true
+            }
+        },
+        {
+            "developer_version": "9.0.0",
+            "timestamp": "2026-10-30T14:44:19.874692",
+            "project": {
+                "root": "C:\\Users\\hp\\OneDrive\\Desktop\\apex",
+                "files": 67,
+                "folders": 8
+            },
+            "validation": {
+                "syntax_errors": 0,
+                "import_analysis_errors": 0,
+                "health": "healthy"
+            },
+            "monitoring": {
+                "status": "healthy",
+                "alerts": 0
+            },
+            "remediation": {
+                "actions": 0
+            },
+            "deployment_gate": {
+                "status": "READY_FOR_DEPLOYMENT",
+                "performed": false
+            },
+            "next_stage_ready": true,
+            "release_prepared": true,
+            "git": {
+                "git_status": true,
+                "git_branch": true,
+                "git_log": true,
+                "clean_worktree": false,
+                "automatic_push": false
+            },
+            "vscode": true,
+            "duration_seconds": 19.084,
+            "step_9": {
+                "status": "READY_FOR_APPROVAL",
+                "plan_file": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_change_plan.json",
+                "source_modified": false,
+                "approval_required": true
+            }
+        },
+        {
+            "developer_version": "9.0.0",
+            "timestamp": "2026-11-03T21:57:26.383369",
+            "project": {
+                "root": "C:\\Users\\hp\\OneDrive\\Desktop\\apex",
+                "files": 67,
+                "folders": 8
+            },
+            "validation": {
+                "syntax_errors": 0,
+                "import_analysis_errors": 0,
+                "health": "healthy"
+            },
+            "monitoring": {
+                "status": "warning",
+                "alerts": 1
+            },
+            "remediation": {
+                "actions": 1
+            },
+            "deployment_gate": {
+                "status": "READY_FOR_DEPLOYMENT",
+                "performed": false
+            },
+            "next_stage_ready": true,
+            "release_prepared": true,
+            "git": {
+                "git_status": true,
+                "git_branch": true,
+                "git_log": true,
+                "clean_worktree": false,
+                "automatic_push": false
+            },
+            "vscode": true,
+            "duration_seconds": 45.978,
+            "step_9": {
+                "status": "READY_FOR_APPROVAL",
+                "plan_file": "C:\\Users\\hp\\OneDrive\\Desktop\\apex\\apex_change_plan.json",
+                "source_modified": false,
+                "approval_required": true
+            }
         }
     ],
     "change_plans": [
@@ -5753,6 +6634,234 @@
                 "system_health.py",
                 "test_dvr_live.py",
                 "test_dvr_window.py",
+                "video_lab.py"
+            ],
+            "gates": {
+                "health": true,
+                "syntax_clean": true,
+                "imports_clean": true,
+                "monitoring_safe": true,
+                "deployment_gate_ready": true
+            },
+            "requested_changes": [],
+            "policy": {
+                "automatic_source_edit": false,
+                "automatic_delete": false,
+                "automatic_git_push": false,
+                "automatic_production_change": false,
+                "requires_explicit_approval": true,
+                "requires_backup_before_change": true,
+                "requires_post_change_validation": true,
+                "rollback_required_on_failed_validation": true
+            },
+            "message": "Step 9 creates a controlled change plan. No source code is modified by this stage."
+        },
+        {
+            "schema_version": 1,
+            "developer_version": "9.0.0",
+            "created_at": "2026-10-20T19:33:21.284969",
+            "stage": "STEP_9_CONTROLLED_CHANGE_ENGINE",
+            "status": "READY_FOR_APPROVAL",
+            "project": "apex",
+            "python_files": [
+                "admin.py",
+                "alerts.py",
+                "alpr_engine.py",
+                "analytics.py",
+                "analytics_view.py",
+                "apex_agent.py",
+                "apex_brain.py",
+                "apex_data.py",
+                "apex_developer.py",
+                "assistant.py",
+                "auth.py",
+                "camera_config_view.py",
+                "cameras.py",
+                "dashboard.py",
+                "database.py",
+                "emergency_alerts_view.py",
+                "face_recognizer.py",
+                "import base64.py",
+                "kyc_engine.py",
+                "map_tracker.py",
+                "run_app.py",
+                "screen_analyzer.py",
+                "style.py",
+                "system_health.py",
+                "test_dvr_live.py",
+                "test_dvr_window.py",
+                "video_lab.py"
+            ],
+            "gates": {
+                "health": true,
+                "syntax_clean": true,
+                "imports_clean": true,
+                "monitoring_safe": true,
+                "deployment_gate_ready": true
+            },
+            "requested_changes": [],
+            "policy": {
+                "automatic_source_edit": false,
+                "automatic_delete": false,
+                "automatic_git_push": false,
+                "automatic_production_change": false,
+                "requires_explicit_approval": true,
+                "requires_backup_before_change": true,
+                "requires_post_change_validation": true,
+                "rollback_required_on_failed_validation": true
+            },
+            "message": "Step 9 creates a controlled change plan. No source code is modified by this stage."
+        },
+        {
+            "schema_version": 1,
+            "developer_version": "9.0.0",
+            "created_at": "2026-10-23T13:34:09.078165",
+            "stage": "STEP_9_CONTROLLED_CHANGE_ENGINE",
+            "status": "READY_FOR_APPROVAL",
+            "project": "apex",
+            "python_files": [
+                "admin.py",
+                "alerts.py",
+                "alpr_engine.py",
+                "analytics.py",
+                "analytics_view.py",
+                "apex_agent.py",
+                "apex_brain.py",
+                "apex_data.py",
+                "apex_developer.py",
+                "assistant.py",
+                "auth.py",
+                "camera_config_view.py",
+                "cameras.py",
+                "dashboard.py",
+                "database.py",
+                "emergency_alerts_view.py",
+                "face_recognizer.py",
+                "import base64.py",
+                "kyc_engine.py",
+                "map_tracker.py",
+                "run_app.py",
+                "screen_analyzer.py",
+                "style.py",
+                "system_health.py",
+                "test_dvr_live.py",
+                "test_dvr_window.py",
+                "video_lab.py"
+            ],
+            "gates": {
+                "health": true,
+                "syntax_clean": true,
+                "imports_clean": true,
+                "monitoring_safe": true,
+                "deployment_gate_ready": true
+            },
+            "requested_changes": [],
+            "policy": {
+                "automatic_source_edit": false,
+                "automatic_delete": false,
+                "automatic_git_push": false,
+                "automatic_production_change": false,
+                "requires_explicit_approval": true,
+                "requires_backup_before_change": true,
+                "requires_post_change_validation": true,
+                "rollback_required_on_failed_validation": true
+            },
+            "message": "Step 9 creates a controlled change plan. No source code is modified by this stage."
+        },
+        {
+            "schema_version": 1,
+            "developer_version": "9.0.0",
+            "created_at": "2026-10-30T14:44:20.062191",
+            "stage": "STEP_9_CONTROLLED_CHANGE_ENGINE",
+            "status": "READY_FOR_APPROVAL",
+            "project": "apex",
+            "python_files": [
+                "admin.py",
+                "alerts.py",
+                "alpr_engine.py",
+                "analytics.py",
+                "analytics_view.py",
+                "apex_agent.py",
+                "apex_brain.py",
+                "apex_data.py",
+                "apex_developer.py",
+                "assistant.py",
+                "auth.py",
+                "camera_config_view.py",
+                "cameras.py",
+                "dashboard.py",
+                "database.py",
+                "emergency_alerts_view.py",
+                "face_recognizer.py",
+                "import base64.py",
+                "kyc_engine.py",
+                "map_tracker.py",
+                "run_app.py",
+                "run_step5_isolated_test.py",
+                "screen_analyzer.py",
+                "style.py",
+                "system_health.py",
+                "test_dvr_live.py",
+                "test_dvr_window.py",
+                "test_step5_safe_fix.py",
+                "video_lab.py"
+            ],
+            "gates": {
+                "health": true,
+                "syntax_clean": true,
+                "imports_clean": true,
+                "monitoring_safe": true,
+                "deployment_gate_ready": true
+            },
+            "requested_changes": [],
+            "policy": {
+                "automatic_source_edit": false,
+                "automatic_delete": false,
+                "automatic_git_push": false,
+                "automatic_production_change": false,
+                "requires_explicit_approval": true,
+                "requires_backup_before_change": true,
+                "requires_post_change_validation": true,
+                "rollback_required_on_failed_validation": true
+            },
+            "message": "Step 9 creates a controlled change plan. No source code is modified by this stage."
+        },
+        {
+            "schema_version": 1,
+            "developer_version": "9.0.0",
+            "created_at": "2026-11-03T21:57:26.539390",
+            "stage": "STEP_9_CONTROLLED_CHANGE_ENGINE",
+            "status": "READY_FOR_APPROVAL",
+            "project": "apex",
+            "python_files": [
+                "admin.py",
+                "alerts.py",
+                "alpr_engine.py",
+                "analytics.py",
+                "analytics_view.py",
+                "apex_agent.py",
+                "apex_brain.py",
+                "apex_data.py",
+                "apex_developer.py",
+                "assistant.py",
+                "auth.py",
+                "camera_config_view.py",
+                "cameras.py",
+                "dashboard.py",
+                "database.py",
+                "emergency_alerts_view.py",
+                "face_recognizer.py",
+                "import base64.py",
+                "kyc_engine.py",
+                "map_tracker.py",
+                "run_app.py",
+                "run_step5_isolated_test.py",
+                "screen_analyzer.py",
+                "style.py",
+                "system_health.py",
+                "test_dvr_live.py",
+                "test_dvr_window.py",
+                "test_step5_safe_fix.py",
                 "video_lab.py"
             ],
             "gates": {

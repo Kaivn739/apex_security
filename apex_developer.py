@@ -542,87 +542,465 @@ def safe_auto_fix(
     syntax_errors,
 ):
     """
-    Conservative formatting cleanup only.
+    STEP 5 — Safe Auto-Fix
 
-    This function NEVER claims to repair arbitrary
-    Python syntax errors.
+    Performs conservative formatting cleanup only.
+
+    Safety rules:
+    - Processes only Python files listed in syntax_errors.
+    - Never overwrites a file unless the candidate passes
+      Python syntax validation.
+    - Creates a backup before modifying a file.
+    - Preserves the original UTF-8 BOM when present.
+    - Restores the original bytes if writing or validation fails.
+    - Returns only successfully applied fixes.
+    - Records skipped and failed operations in memory.
+    - Never claims to repair arbitrary Python syntax errors.
     """
 
     fixes = []
+    memory_records = []
 
-    if not syntax_errors:
+    # --------------------------------------------------------
+    # STEP 5.1 — Validate input
+    # --------------------------------------------------------
 
-        print("✅ No syntax errors require fixing.")
-
+    if not isinstance(syntax_errors, (list, tuple)):
+        print(
+            "⚠️ Safe Auto-Fix skipped: "
+            "syntax_errors must be a list or tuple."
+        )
         return fixes
 
-    error_files = {item["file"] for item in syntax_errors if item.get("file")}
+    if not syntax_errors:
+        print(
+            "✅ No syntax errors require fixing."
+        )
+        return fixes
+
+    if not isinstance(files, (list, tuple)):
+        print(
+            "⚠️ Safe Auto-Fix skipped: "
+            "files must be a list or tuple."
+        )
+        return fixes
+
+    error_files = {
+        item.get("file")
+        for item in syntax_errors
+        if isinstance(item, dict)
+        and item.get("file")
+    }
+
+    if not error_files:
+        print(
+            "⚠️ No identifiable Python files "
+            "were found in the syntax error report."
+        )
+        return fixes
+
+    # --------------------------------------------------------
+    # STEP 5.2 — Process only identified Python files
+    # --------------------------------------------------------
 
     for file_path in files:
 
-        relative_name = relative_path(file_path)
-
-        if relative_name not in error_files or file_path.suffix.lower() != ".py":
-            continue
-
         try:
+            if not isinstance(file_path, Path):
+                file_path = Path(file_path)
 
-            original = file_path.read_text(encoding="utf-8-sig")
+            if file_path.suffix.lower() != ".py":
+                continue
+
+            relative_name = relative_path(
+                file_path
+            )
+
+            if relative_name not in error_files:
+                continue
+
+            if not file_path.is_file():
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": "fix_skipped_missing_file",
+                        "timestamp": now_iso(),
+                    }
+                )
+
+                print(
+                    f"⚠️ Skipped missing file: "
+                    f"{relative_name}"
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.3 — Read and preserve original bytes
+            # ------------------------------------------------
+
+            original_bytes = file_path.read_bytes()
+
+            has_utf8_bom = original_bytes.startswith(
+                b"\xef\xbb\xbf"
+            )
+
+            try:
+                original = original_bytes.decode(
+                    "utf-8-sig"
+                )
+
+            except UnicodeDecodeError as error:
+
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": "fix_skipped_encoding_error",
+                        "error": str(error),
+                        "timestamp": now_iso(),
+                    }
+                )
+
+                print(
+                    f"⚠️ Skipped encoding error: "
+                    f"{relative_name}"
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.4 — Conservative formatting cleanup
+            # ------------------------------------------------
 
             fixed = original.replace(
                 "\r\n",
                 "\n",
             )
 
-            fixed = "\n".join(line.rstrip() for line in fixed.split("\n"))
+            fixed = "\n".join(
+                line.rstrip()
+                for line in fixed.split("\n")
+            )
 
             fixed = fixed.rstrip("\n") + "\n"
 
-            if fixed != original:
-
-                file_path.write_text(
-                    fixed,
-                    encoding="utf-8",
-                )
-
-                fixes.append(
+            # No changes are necessary.
+            if fixed == original:
+                memory_records.append(
                     {
                         "file": relative_name,
-                        "type": ("safe_format_cleanup"),
+                        "type": "fix_skipped_no_changes",
+                        "timestamp": now_iso(),
+                    }
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.5 — Validate candidate before writing
+            # ------------------------------------------------
+
+            try:
+                compile(
+                    fixed,
+                    str(file_path),
+                    "exec",
+                )
+
+            except (SyntaxError, ValueError, TypeError) as error:
+
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": (
+                            "fix_skipped_syntax_invalid"
+                        ),
+                        "error": str(error),
                         "timestamp": now_iso(),
                     }
                 )
 
-        except Exception as error:
+                print(
+                    f"⚠️ Candidate remains invalid; "
+                    f"original preserved: {relative_name}"
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.6 — Create a unique backup
+            # ------------------------------------------------
+
+            timestamp = datetime.now().strftime(
+                "%Y%m%d_%H%M%S_%f"
+            )
+
+            safe_name = (
+                relative_name
+                .replace("\\", "_")
+                .replace("/", "_")
+                .replace(":", "_")
+            )
+
+            backup_path = (
+                BACKUP_DIR
+                / (
+                    f"{safe_name}."
+                    f"step5_{timestamp}.bak"
+                )
+            )
+
+            try:
+                BACKUP_DIR.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
+
+                shutil.copy2(
+                    file_path,
+                    backup_path,
+                )
+
+                # Confirm the backup is byte-for-byte identical.
+                if backup_path.read_bytes() != original_bytes:
+                    raise OSError(
+                        "Backup verification failed."
+                    )
+
+            except Exception as error:
+
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": "fix_skipped_backup_error",
+                        "error": str(error),
+                        "timestamp": now_iso(),
+                    }
+                )
+
+                print(
+                    f"⚠️ Backup failed; original preserved: "
+                    f"{relative_name}"
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.7 — Prepare output bytes
+            # ------------------------------------------------
+
+            try:
+                fixed_bytes = fixed.encode(
+                    "utf-8"
+                )
+
+                if has_utf8_bom:
+                    fixed_bytes = (
+                        b"\xef\xbb\xbf"
+                        + fixed_bytes
+                    )
+
+                # Confirm candidate bytes decode correctly.
+                candidate_text = fixed_bytes.decode(
+                    "utf-8-sig"
+                )
+
+                # Validate the exact text that will be written.
+                compile(
+                    candidate_text,
+                    str(file_path),
+                    "exec",
+                )
+
+            except Exception as error:
+
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": "fix_skipped_validation_error",
+                        "error": str(error),
+                        "timestamp": now_iso(),
+                    }
+                )
+
+                print(
+                    f"⚠️ Candidate validation failed: "
+                    f"{relative_name}"
+                )
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.8 — Write and verify the candidate
+            # ------------------------------------------------
+
+            try:
+                file_path.write_bytes(
+                    fixed_bytes
+                )
+
+                written_bytes = file_path.read_bytes()
+
+                if written_bytes != fixed_bytes:
+                    raise OSError(
+                        "Written bytes do not match candidate."
+                    )
+
+                written_text = written_bytes.decode(
+                    "utf-8-sig"
+                )
+
+                compile(
+                    written_text,
+                    str(file_path),
+                    "exec",
+                )
+
+            except Exception as error:
+
+                # Attempt to restore the exact original bytes.
+                try:
+                    file_path.write_bytes(
+                        original_bytes
+                    )
+
+                    if file_path.read_bytes() != original_bytes:
+                        raise OSError(
+                            "Original restoration verification failed."
+                        )
+
+                    restore_status = "restored"
+
+                except Exception as restore_error:
+                    restore_status = (
+                        "restore_failed: "
+                        + str(restore_error)
+                    )
+
+                memory_records.append(
+                    {
+                        "file": relative_name,
+                        "type": "fix_failed",
+                        "error": str(error),
+                        "restore_status": restore_status,
+                        "backup": str(backup_path),
+                        "timestamp": now_iso(),
+                    }
+                )
+
+                print(
+                    f"❌ Fix failed: {relative_name}"
+                )
+
+                if restore_status == "restored":
+                    print(
+                        "↩️ Original file restored."
+                    )
+                else:
+                    print(
+                        "🚨 Restoration failed. "
+                        "Use the verified backup:"
+                    )
+                    print(
+                        str(backup_path)
+                    )
+
+                continue
+
+            # ------------------------------------------------
+            # STEP 5.9 — Record successful fix
+            # ------------------------------------------------
+
+            fix_record = {
+                "file": relative_name,
+                "type": "safe_format_cleanup",
+                "backup": str(backup_path),
+                "timestamp": now_iso(),
+            }
 
             fixes.append(
+                fix_record
+            )
+
+            memory_records.append(
+                fix_record.copy()
+            )
+
+            print(
+                f"✅ Safe formatting cleanup applied: "
+                f"{relative_name}"
+            )
+
+        except Exception as error:
+
+            # Keep processing other files if one file fails.
+            try:
+                failed_name = relative_path(
+                    file_path
+                )
+            except Exception:
+                failed_name = str(file_path)
+
+            memory_records.append(
                 {
-                    "file": relative_name,
+                    "file": failed_name,
                     "type": "fix_failed",
                     "error": str(error),
                     "timestamp": now_iso(),
                 }
             )
 
-    MEMORY["fixes"].extend(fixes)
+            print(
+                f"⚠️ Safe Auto-Fix could not process: "
+                f"{failed_name}"
+            )
 
-    save_memory(MEMORY)
+    # --------------------------------------------------------
+    # STEP 5.10 — Persist memory records
+    # --------------------------------------------------------
+
+    if memory_records:
+
+        try:
+            if not isinstance(
+                MEMORY.get("fixes"),
+                list,
+            ):
+                MEMORY["fixes"] = []
+
+            MEMORY["fixes"].extend(
+                memory_records
+            )
+
+            save_memory(
+                MEMORY
+            )
+
+        except Exception as error:
+            print(
+                "⚠️ Fix records could not be saved "
+                f"to memory: {error}"
+            )
+
+    # --------------------------------------------------------
+    # STEP 5.11 — Return successful fixes only
+    # --------------------------------------------------------
+
+    print(
+        "📊 STEP 5 summary:"
+    )
+
+    print(
+        f"   Successful fixes: {len(fixes)}"
+    )
+
+    print(
+        f"   Recorded operations: "
+        f"{len(memory_records)}"
+    )
 
     return fixes
-
-
-# ============================================================
-# POST-FIX VALIDATION
-# ============================================================
-
-
 def revalidate_after_fixes(files):
     print("\n🔎 Re-validating project " "after safe fixes...")
 
     checked, syntax_errors = check_python_syntax(files)
 
     print(f"🐍 Python files re-checked: " f"{checked}")
-
+        
     if syntax_errors:
 
         print("❌ Syntax errors after fixes: " f"{len(syntax_errors)}")
