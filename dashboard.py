@@ -2,10 +2,55 @@ import cv2
 import streamlit as st
 import time
 
+from apex_dashboard_bridge import render_compact_developer_widget
+from tier_guard import (
+    ALL_DASHBOARD_MODULES,
+    render_sidebar_tier_status,
+    enforce_camera_limit,
+    enforce_ai_permissions,
+    render_locked_or_upgrade_view,
+)
+from apex_vms_optimizer import (
+    APEXCameraWatchdog,
+    APEXStorageGuard,
+    APEXSmartAISampler,
+    APEXCameraWatchdog,
+)
+
 
 def show_dashboard():
-    st.title("⚡ APEX Video Analytics & Surveillance Dashboard")
+    render_compact_developer_widget()
     st.markdown("---")
+    user_profile = render_sidebar_tier_status()
+    allowed_mods = user_profile["tier_info"]["allowed_modules"]
+    menu_options = [
+        m if m in allowed_mods else f"🔒 {m}" for m in ALL_DASHBOARD_MODULES
+    ]
+    view_mode = st.sidebar.radio("بەشی کارکردن هەڵبژێرە:", menu_options)
+    if render_locked_or_upgrade_view(view_mode):
+        return
+    if "camera_config" not in st.session_state:
+
+        st.session_state.camera_config = {
+            1: {
+                "name": "cam-01 - Main Gate",
+                "type": "LAN Cable (IP)",
+                "source": "192.168.1.101",
+            },
+            2: {
+                "name": "cam-02 - Parking Lot",
+                "type": "hdmi capture card (IP)",
+                "source": "192.168.1.102",
+            },
+            3: {
+                "name": "cam-03 - Entrance",
+                "type": "dvr interface (IP)",
+                "source": "192.168.1.103",
+            },
+            4: {"name": "cam-04 - Lobby", "type": "Webcam (USB)", "source": "0"},
+        }
+
+    st.title("⚡ APEX Video Analytics & Surveillance Dashboard")
 
     # ----------------------------------------------------
     # ١. بەشی هێما سەرەکییەکان (Metrics Bar)

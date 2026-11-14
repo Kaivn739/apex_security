@@ -7,6 +7,8 @@ import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+import shlex
+import threading as _s10_threading
 
 # ============================================================
 # APEX AI DEVELOPER
@@ -566,36 +568,26 @@ def safe_auto_fix(
     # --------------------------------------------------------
 
     if not isinstance(syntax_errors, (list, tuple)):
-        print(
-            "⚠️ Safe Auto-Fix skipped: "
-            "syntax_errors must be a list or tuple."
-        )
+        print("⚠️ Safe Auto-Fix skipped: " "syntax_errors must be a list or tuple.")
         return fixes
 
     if not syntax_errors:
-        print(
-            "✅ No syntax errors require fixing."
-        )
+        print("✅ No syntax errors require fixing.")
         return fixes
 
     if not isinstance(files, (list, tuple)):
-        print(
-            "⚠️ Safe Auto-Fix skipped: "
-            "files must be a list or tuple."
-        )
+        print("⚠️ Safe Auto-Fix skipped: " "files must be a list or tuple.")
         return fixes
 
     error_files = {
         item.get("file")
         for item in syntax_errors
-        if isinstance(item, dict)
-        and item.get("file")
+        if isinstance(item, dict) and item.get("file")
     }
 
     if not error_files:
         print(
-            "⚠️ No identifiable Python files "
-            "were found in the syntax error report."
+            "⚠️ No identifiable Python files " "were found in the syntax error report."
         )
         return fixes
 
@@ -612,9 +604,7 @@ def safe_auto_fix(
             if file_path.suffix.lower() != ".py":
                 continue
 
-            relative_name = relative_path(
-                file_path
-            )
+            relative_name = relative_path(file_path)
 
             if relative_name not in error_files:
                 continue
@@ -628,10 +618,7 @@ def safe_auto_fix(
                     }
                 )
 
-                print(
-                    f"⚠️ Skipped missing file: "
-                    f"{relative_name}"
-                )
+                print(f"⚠️ Skipped missing file: " f"{relative_name}")
                 continue
 
             # ------------------------------------------------
@@ -640,14 +627,10 @@ def safe_auto_fix(
 
             original_bytes = file_path.read_bytes()
 
-            has_utf8_bom = original_bytes.startswith(
-                b"\xef\xbb\xbf"
-            )
+            has_utf8_bom = original_bytes.startswith(b"\xef\xbb\xbf")
 
             try:
-                original = original_bytes.decode(
-                    "utf-8-sig"
-                )
+                original = original_bytes.decode("utf-8-sig")
 
             except UnicodeDecodeError as error:
 
@@ -660,10 +643,7 @@ def safe_auto_fix(
                     }
                 )
 
-                print(
-                    f"⚠️ Skipped encoding error: "
-                    f"{relative_name}"
-                )
+                print(f"⚠️ Skipped encoding error: " f"{relative_name}")
                 continue
 
             # ------------------------------------------------
@@ -675,10 +655,7 @@ def safe_auto_fix(
                 "\n",
             )
 
-            fixed = "\n".join(
-                line.rstrip()
-                for line in fixed.split("\n")
-            )
+            fixed = "\n".join(line.rstrip() for line in fixed.split("\n"))
 
             fixed = fixed.rstrip("\n") + "\n"
 
@@ -709,9 +686,7 @@ def safe_auto_fix(
                 memory_records.append(
                     {
                         "file": relative_name,
-                        "type": (
-                            "fix_skipped_syntax_invalid"
-                        ),
+                        "type": ("fix_skipped_syntax_invalid"),
                         "error": str(error),
                         "timestamp": now_iso(),
                     }
@@ -727,24 +702,13 @@ def safe_auto_fix(
             # STEP 5.6 — Create a unique backup
             # ------------------------------------------------
 
-            timestamp = datetime.now().strftime(
-                "%Y%m%d_%H%M%S_%f"
-            )
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
             safe_name = (
-                relative_name
-                .replace("\\", "_")
-                .replace("/", "_")
-                .replace(":", "_")
+                relative_name.replace("\\", "_").replace("/", "_").replace(":", "_")
             )
 
-            backup_path = (
-                BACKUP_DIR
-                / (
-                    f"{safe_name}."
-                    f"step5_{timestamp}.bak"
-                )
-            )
+            backup_path = BACKUP_DIR / (f"{safe_name}." f"step5_{timestamp}.bak")
 
             try:
                 BACKUP_DIR.mkdir(
@@ -759,9 +723,7 @@ def safe_auto_fix(
 
                 # Confirm the backup is byte-for-byte identical.
                 if backup_path.read_bytes() != original_bytes:
-                    raise OSError(
-                        "Backup verification failed."
-                    )
+                    raise OSError("Backup verification failed.")
 
             except Exception as error:
 
@@ -774,10 +736,7 @@ def safe_auto_fix(
                     }
                 )
 
-                print(
-                    f"⚠️ Backup failed; original preserved: "
-                    f"{relative_name}"
-                )
+                print(f"⚠️ Backup failed; original preserved: " f"{relative_name}")
                 continue
 
             # ------------------------------------------------
@@ -785,20 +744,13 @@ def safe_auto_fix(
             # ------------------------------------------------
 
             try:
-                fixed_bytes = fixed.encode(
-                    "utf-8"
-                )
+                fixed_bytes = fixed.encode("utf-8")
 
                 if has_utf8_bom:
-                    fixed_bytes = (
-                        b"\xef\xbb\xbf"
-                        + fixed_bytes
-                    )
+                    fixed_bytes = b"\xef\xbb\xbf" + fixed_bytes
 
                 # Confirm candidate bytes decode correctly.
-                candidate_text = fixed_bytes.decode(
-                    "utf-8-sig"
-                )
+                candidate_text = fixed_bytes.decode("utf-8-sig")
 
                 # Validate the exact text that will be written.
                 compile(
@@ -818,10 +770,7 @@ def safe_auto_fix(
                     }
                 )
 
-                print(
-                    f"⚠️ Candidate validation failed: "
-                    f"{relative_name}"
-                )
+                print(f"⚠️ Candidate validation failed: " f"{relative_name}")
                 continue
 
             # ------------------------------------------------
@@ -829,20 +778,14 @@ def safe_auto_fix(
             # ------------------------------------------------
 
             try:
-                file_path.write_bytes(
-                    fixed_bytes
-                )
+                file_path.write_bytes(fixed_bytes)
 
                 written_bytes = file_path.read_bytes()
 
                 if written_bytes != fixed_bytes:
-                    raise OSError(
-                        "Written bytes do not match candidate."
-                    )
+                    raise OSError("Written bytes do not match candidate.")
 
-                written_text = written_bytes.decode(
-                    "utf-8-sig"
-                )
+                written_text = written_bytes.decode("utf-8-sig")
 
                 compile(
                     written_text,
@@ -854,22 +797,15 @@ def safe_auto_fix(
 
                 # Attempt to restore the exact original bytes.
                 try:
-                    file_path.write_bytes(
-                        original_bytes
-                    )
+                    file_path.write_bytes(original_bytes)
 
                     if file_path.read_bytes() != original_bytes:
-                        raise OSError(
-                            "Original restoration verification failed."
-                        )
+                        raise OSError("Original restoration verification failed.")
 
                     restore_status = "restored"
 
                 except Exception as restore_error:
-                    restore_status = (
-                        "restore_failed: "
-                        + str(restore_error)
-                    )
+                    restore_status = "restore_failed: " + str(restore_error)
 
                 memory_records.append(
                     {
@@ -882,22 +818,13 @@ def safe_auto_fix(
                     }
                 )
 
-                print(
-                    f"❌ Fix failed: {relative_name}"
-                )
+                print(f"❌ Fix failed: {relative_name}")
 
                 if restore_status == "restored":
-                    print(
-                        "↩️ Original file restored."
-                    )
+                    print("↩️ Original file restored.")
                 else:
-                    print(
-                        "🚨 Restoration failed. "
-                        "Use the verified backup:"
-                    )
-                    print(
-                        str(backup_path)
-                    )
+                    print("🚨 Restoration failed. " "Use the verified backup:")
+                    print(str(backup_path))
 
                 continue
 
@@ -912,26 +839,17 @@ def safe_auto_fix(
                 "timestamp": now_iso(),
             }
 
-            fixes.append(
-                fix_record
-            )
+            fixes.append(fix_record)
 
-            memory_records.append(
-                fix_record.copy()
-            )
+            memory_records.append(fix_record.copy())
 
-            print(
-                f"✅ Safe formatting cleanup applied: "
-                f"{relative_name}"
-            )
+            print(f"✅ Safe formatting cleanup applied: " f"{relative_name}")
 
         except Exception as error:
 
             # Keep processing other files if one file fails.
             try:
-                failed_name = relative_path(
-                    file_path
-                )
+                failed_name = relative_path(file_path)
             except Exception:
                 failed_name = str(file_path)
 
@@ -944,10 +862,7 @@ def safe_auto_fix(
                 }
             )
 
-            print(
-                f"⚠️ Safe Auto-Fix could not process: "
-                f"{failed_name}"
-            )
+            print(f"⚠️ Safe Auto-Fix could not process: " f"{failed_name}")
 
     # --------------------------------------------------------
     # STEP 5.10 — Persist memory records
@@ -962,45 +877,33 @@ def safe_auto_fix(
             ):
                 MEMORY["fixes"] = []
 
-            MEMORY["fixes"].extend(
-                memory_records
-            )
+            MEMORY["fixes"].extend(memory_records)
 
-            save_memory(
-                MEMORY
-            )
+            save_memory(MEMORY)
 
         except Exception as error:
-            print(
-                "⚠️ Fix records could not be saved "
-                f"to memory: {error}"
-            )
+            print("⚠️ Fix records could not be saved " f"to memory: {error}")
 
     # --------------------------------------------------------
     # STEP 5.11 — Return successful fixes only
     # --------------------------------------------------------
 
-    print(
-        "📊 STEP 5 summary:"
-    )
+    print("📊 STEP 5 summary:")
 
-    print(
-        f"   Successful fixes: {len(fixes)}"
-    )
+    print(f"   Successful fixes: {len(fixes)}")
 
-    print(
-        f"   Recorded operations: "
-        f"{len(memory_records)}"
-    )
+    print(f"   Recorded operations: " f"{len(memory_records)}")
 
     return fixes
+
+
 def revalidate_after_fixes(files):
     print("\n🔎 Re-validating project " "after safe fixes...")
 
     checked, syntax_errors = check_python_syntax(files)
 
     print(f"🐍 Python files re-checked: " f"{checked}")
-        
+
     if syntax_errors:
 
         print("❌ Syntax errors after fixes: " f"{len(syntax_errors)}")
@@ -1110,6 +1013,28 @@ def command_is_safe(command):
     normalized = command.strip().lower()
 
     if command_is_blocked(normalized):
+        return False
+
+    # Security Fix: Prevent command chaining / shell injection & inline payloads (-c)
+    if (
+        "&&" in normalized
+        or "||" in normalized
+        or ";" in normalized
+        or "|" in normalized
+    ):
+        return False
+
+    try:
+        tokens = shlex.split(command)
+        if not tokens:
+            return False
+
+        base_cmd = tokens[0].lower()
+        if base_cmd == "python":
+            # Prevent inline script execution payload (python -c ...)
+            if "-c" in tokens or "--command" in tokens:
+                return False  # لێرەدا False بە پیتگەورەیە
+    except Exception:
         return False
 
     return any(
@@ -2713,6 +2638,443 @@ def main():
 # ENTRY POINT
 # ============================================================
 
+# ============================================================
+# STEP 10 - CONTROLLED PATCH & AUTONOMOUS EXECUTION ENGINE
+# ============================================================
+
+
+def execute_controlled_change_plan(change_plan, files):
+    """
+    STEP 10 — Controlled Patch Application
+
+    Safety Rules:
+    - Only executes if Step 9 change plan is READY_FOR_APPROVAL.
+    - Creates an emergency backup before applying any patch.
+    - Validates syntax immediately after writing changes.
+    - Performs automatic rollback (restore) if validation fails.
+    - Never pushes to git or deploys to production automatically.
+    """
+    print("\n" + "=" * 60)
+    print("🚀 APEX STEP 10 - CONTROLLED PATCH APPLICATION")
+    print("=" * 60)
+
+    if change_plan.get("status") != "READY_FOR_APPROVAL":
+        print("⛔ Step 10 Blocked: Change plan is not approved or ready.")
+        return {"executed": False, "reason": "plan_not_ready"}
+
+    requested_changes = change_plan.get("requested_changes", [])
+
+    if not requested_changes:
+        print("✅ No pending code changes requested in the plan.")
+        print("🛡️ System remains clean. No automatic source edits performed.")
+        return {
+            "executed": True,
+            "applied_changes": 0,
+            "message": "No changes to apply.",
+        }
+
+    applied_fixes = []
+
+    for change in requested_changes:
+        target_file = PROJECT_ROOT / change.get("file")
+        new_content = change.get("content")
+
+        if not target_file.is_file():
+            print(f"⚠️ Target file not found for patching: {change.get('file')}")
+            continue
+
+        print(f"🛠️ Preparing controlled patch for: {relative_path(target_file)}")
+
+        # 1. Read original bytes for safe rollback
+        original_bytes = target_file.read_bytes()
+        has_bom = original_bytes.startswith(b"\xef\xbb\xbf")
+
+        # 2. Create emergency backup
+        backup_path = create_backup(reason="step10_pre_patch")
+        if not backup_path:
+            print("❌ Aborting patch: Emergency backup creation failed.")
+            continue
+
+        try:
+            # 3. Apply candidate content
+            candidate_bytes = new_content.encode("utf-8")
+            if has_bom:
+                candidate_bytes = b"\xef\xbb\xbf" + candidate_bytes
+
+            # Validate syntax before writing
+            compile(new_content, str(target_file), "exec")
+
+            # Write file
+            target_file.write_bytes(candidate_bytes)
+
+            # 4. Post-patch validation
+            written_text = target_file.read_bytes().decode("utf-8-sig")
+            compile(written_text, str(target_file), "exec")
+
+            applied_fixes.append(
+                {
+                    "file": relative_path(target_file),
+                    "timestamp": now_iso(),
+                    "status": "success",
+                }
+            )
+            print(
+                f"✅ Successfully applied and verified patch for: {relative_path(target_file)}"
+            )
+
+        except Exception as error:
+            print(
+                f"❌ Patch validation failed for {relative_path(target_file)}: {error}"
+            )
+            print("↩️ Performing automatic ROLLBACK to original state...")
+
+            try:
+                target_file.write_bytes(original_bytes)
+                print("✅ Rollback successful. Original file preserved.")
+            except Exception as rollback_error:
+                print(
+                    f"🚨 CRITICAL: Rollback failed! Manual recovery required from backup: {backup_path}"
+                )
+                print(f"Error: {rollback_error}")
+
+            applied_fixes.append(
+                {
+                    "file": relative_path(target_file),
+                    "timestamp": now_iso(),
+                    "status": "failed_and_rolled_back",
+                    "error": str(error),
+                }
+            )
+
+    # Record execution in memory
+    record = {
+        "timestamp": now_iso(),
+        "developer_version": VERSION,
+        "applied_count": len(applied_fixes),
+        "details": applied_fixes,
+    }
+    remember("change_applications", record)
+    save_memory(MEMORY)
+
+    print("=" * 60)
+    print("🏁 STEP 10 EXECUTION COMPLETED")
+    print(f"   Applied patches: {len(applied_fixes)}")
+    print("=" * 60)
+
+    return {
+        "executed": True,
+        "applied_changes": len(applied_fixes),
+        "details": applied_fixes,
+    }
+
+
+# ============================================================
+# STEP 10 - AUTONOMOUS EVOLUTION, PATTERN MEMORY & ZERO-LAG BRIDGE
+# Appended safely onto Steps 1-9 without altering existing code
+# ============================================================
+import hashlib as _s10_hashlib
+import json as _s10_json
+import os as _s10_os
+import time as _s10_time
+from datetime import datetime as _s10_datetime
+from pathlib import Path as _s10_Path
+
+try:
+    import psutil as _s10_psutil
+except ImportError:
+    _s10_psutil = None
+
+_S10_ROOT = globals().get("PROJECT_ROOT", _s10_Path(__file__).resolve().parent)
+_S10_MEMORY_FILE = globals().get("MEMORY_FILE", _S10_ROOT / "developer_memory.json")
+_S10_REMEDIATION_DIR = globals().get(
+    "REMEDIATION_LOG_DIR", _S10_ROOT / ".apex_remediation_logs"
+)
+_S10_BRIDGE_FILE = _S10_ROOT / "apex_ai_bridge_status.json"
+_S10_LOCK_FILE = _S10_ROOT / ".apex_step10.lock"
+
+_S10_CPU_LIMIT = 75.0
+_S10_RAM_LIMIT = 82.0
+
+
+def _s10_now_iso() -> str:
+    return _s10_datetime.now().isoformat()
+
+
+def _s10_atomic_write(target_path: _s10_Path, payload: dict) -> None:
+    """نووسینی ئەتۆمی بۆ ئەوەی APEX Security هەرگیز فایلێکی نیوەچڵ نەخوێنێتەوە"""
+    tmp_path = target_path.with_suffix(f".tmp_{_s10_os.getpid()}")
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        _s10_json.dump(payload, f, indent=4, ensure_ascii=False)
+        f.flush()
+        _s10_os.fsync(f.fileno())
+    _s10_os.replace(tmp_path, target_path)
+
+
+class Step10ZeroLagGuardian:
+    """چاودێری CPU/RAM و ڕێگریکردن لە هەر جۆرە لاگێک لەسەر پەخشی کامێراکان"""
+
+    @staticmethod
+    def get_telemetry() -> dict:
+        cpu = 0.0
+        ram = 0.0
+        if _s10_psutil is not None:
+            try:
+                cpu = float(_s10_psutil.cpu_percent(interval=0.05))
+                ram = float(_s10_psutil.virtual_memory().percent)
+            except Exception:
+                pass
+        elif "get_system_memory" in globals() and callable(
+            globals()["get_system_memory"]
+        ):
+            try:
+                mem = globals()["get_system_memory"]()
+                if isinstance(mem, dict) and mem.get("available"):
+                    ram = float(mem.get("load_percent", 0))
+            except Exception:
+                pass
+
+        mode = (
+            "LOW_FOOTPRINT_THROTTLED"
+            if (cpu > _S10_CPU_LIMIT or ram > _S10_RAM_LIMIT)
+            else "OPTIMAL_ZERO_LAG"
+        )
+        return {
+            "cpu_percent": round(cpu, 1),
+            "ram_percent": round(ram, 1),
+            "mode": mode,
+        }
+
+    @staticmethod
+    def light_cache_relief() -> int:
+        removed = 0
+        for root, dirs, _ in _s10_os.walk(_S10_ROOT):
+            dirs[:] = [
+                d for d in dirs if d not in {".git", ".venv", "venv", ".apex_backups"}
+            ]
+            _s10_time.sleep(0.001)
+            if "__pycache__" in dirs:
+                cache_dir = _s10_Path(root) / "__pycache__"
+                for item in cache_dir.iterdir():
+                    if item.is_file():
+                        try:
+                            item.unlink()
+                            removed += 1
+                        except Exception:
+                            pass
+        return removed
+
+
+class Step10PatternMemory:
+    """فێربوون لە هەڵە و ئاگادارییەکانی ستێپەکانی ١ تا ٩ بە پەنجەمۆری SHA-256"""
+
+    KNOWN_SOLUTIONS = {
+        "VideoWriter_fourcc": "Use cv2.VideoWriter_fourcc(*'mp4v') directly",
+        "use_column_width": "Replace use_column_width=True with use_container_width=True",
+        "memory": "Trigger pycache cleanup and SmartAISampler throttling",
+        "log": "Archive oversized log entries and monitor recurring tracebacks",
+    }
+
+    def __init__(self, memory_ref: dict):
+        self.memory = memory_ref
+        self.memory.setdefault("step10_learned_patterns", {})
+        self.memory.setdefault("step10_history", [])
+
+    def learn_from_event(self, signature_text: str, source: str = "pipeline") -> dict:
+        clean_sig = " ".join(str(signature_text).strip().split())
+        fp = _s10_hashlib.sha256(clean_sig.encode("utf-8")).hexdigest()[:16]
+        patterns = self.memory["step10_learned_patterns"]
+
+        matched_advice = "Recorded for continuous tracking and prevention"
+        for key, advice in self.KNOWN_SOLUTIONS.items():
+            if key.lower() in clean_sig.lower():
+                matched_advice = advice
+                break
+
+        if fp in patterns:
+            patterns[fp]["occurrences"] += 1
+            patterns[fp]["last_seen"] = _s10_now_iso()
+            patterns[fp]["last_source"] = source
+            state = "RECOGNIZED"
+        else:
+            patterns[fp] = {
+                "fingerprint": fp,
+                "first_seen": _s10_now_iso(),
+                "last_seen": _s10_now_iso(),
+                "occurrences": 1,
+                "source": source,
+                "summary": clean_sig[:300],
+                "recommended_action": matched_advice,
+            }
+            state = "NEW_PATTERN_LEARNED"
+
+        return {
+            "state": state,
+            "fingerprint": fp,
+            "occurrences": patterns[fp]["occurrences"],
+        }
+
+
+def run_step10_autonomous_evolution(explicit_approval: bool = False) -> dict:
+    """
+    بەستنەوەی ستێپ ١٠ بە دەرەنجامی ستێپەکانی ١ تا ٩ بەبێ دەستکاریکردنی کۆدی پێشوو
+    """
+    print("\n" + "=" * 60)
+    print("🧬 STEP 10 - AUTONOMOUS EVOLUTION & ZERO-LAG SECURITY BRIDGE")
+    print("=" * 60)
+
+    if _S10_LOCK_FILE.exists() and _s10_psutil is not None:
+        try:
+            lock_data = _s10_json.loads(_S10_LOCK_FILE.read_text(encoding="utf-8"))
+            old_pid = int(lock_data.get("pid", -1))
+            if (
+                old_pid > 0
+                and old_pid != _s10_os.getpid()
+                and _s10_psutil.pid_exists(old_pid)
+            ):
+                print(
+                    "⏳ Step 10 is already active in background; skipping duplicate run."
+                )
+                return {"step": 10, "status": "ALREADY_ACTIVE"}
+        except Exception:
+            pass
+
+    _s10_atomic_write(
+        _S10_LOCK_FILE, {"pid": _s10_os.getpid(), "started_at": _s10_now_iso()}
+    )
+
+    try:
+        raw_mem = globals().get("MEMORY")
+        if isinstance(raw_mem, dict):
+            mem = raw_mem
+        elif _S10_MEMORY_FILE.exists():
+            mem = _s10_json.loads(_S10_MEMORY_FILE.read_text(encoding="utf-8"))
+        else:
+            mem = {}
+
+        telemetry = Step10ZeroLagGuardian.get_telemetry()
+        learner = Step10PatternMemory(mem)
+
+        recent_alerts = mem.get("monitoring_alerts", [])[-10:]
+        learned_count_this_run = 0
+        for alert in recent_alerts:
+            if isinstance(alert, dict):
+                sig = f"{alert.get('type', 'alert')}:{alert.get('level', 'info')}:{alert.get('message', '')}"
+                learner.learn_from_event(
+                    sig, source=str(alert.get("file", "step6_monitoring"))
+                )
+                learned_count_this_run += 1
+
+        if _S10_REMEDIATION_DIR.exists():
+            for log_path in _S10_REMEDIATION_DIR.glob("*.log"):
+                try:
+                    txt = log_path.read_text(encoding="utf-8", errors="ignore")
+                    if "error" in txt.lower() or "traceback" in txt.lower():
+                        learner.learn_from_event(txt[-500:], source=log_path.name)
+                        learned_count_this_run += 1
+                except Exception:
+                    pass
+
+        cleaned_cache = 0
+        if telemetry["mode"] == "LOW_FOOTPRINT_THROTTLED":
+            cleaned_cache = Step10ZeroLagGuardian.light_cache_relief()
+
+        deployments = mem.get("deployments", [])
+        latest_gate = (
+            deployments[-1].get("status", "READY_FOR_APPROVAL")
+            if deployments
+            else "READY_FOR_APPROVAL"
+        )
+
+        step10_status = (
+            "ACTIVE_EVOLUTION_APPROVED"
+            if explicit_approval
+            else "GUARDED_LEARNING_AND_BRIDGE_ACTIVE"
+        )
+
+        report = {
+            "step": 10,
+            "timestamp": _s10_now_iso(),
+            "status": step10_status,
+            "step8_9_gate_sync": latest_gate,
+            "explicit_source_write_approved": explicit_approval,
+            "hardware_telemetry": telemetry,
+            "cache_items_relieved": cleaned_cache,
+            "alerts_indexed_this_run": learned_count_this_run,
+            "total_learned_patterns": len(mem.get("step10_learned_patterns", {})),
+            "bridge_file": str(_S10_BRIDGE_FILE.name),
+        }
+
+        mem["step10_history"].append(report)
+        mem["step10_history"] = mem["step10_history"][-200:]
+
+        save_fn = globals().get("save_memory")
+        if callable(save_fn):
+            save_fn(mem)
+        else:
+            _s10_atomic_write(_S10_MEMORY_FILE, mem)
+
+        _s10_atomic_write(_S10_BRIDGE_FILE, report)
+
+        print(
+            f"⚡ CPU/RAM Telemetry: {telemetry['cpu_percent']}% / {telemetry['ram_percent']}% ({telemetry['mode']})"
+        )
+        print(f"📐 Step 9 Gate Sync: {latest_gate} (Explicit Lock Respected)")
+        print(
+            f"🧠 Total Learned Patterns: {report['total_learned_patterns']} (Indexed now: {learned_count_this_run})"
+        )
+        print(f"🌉 APEX Security Bridge: ACTIVE ({_S10_BRIDGE_FILE.name})")
+        print("🟢 ALL STEPS (1 TO 10) UNIFIED IN ONE FILE & READY.")
+        print("=" * 60)
+
+        return report
+
+    finally:
+        if _S10_LOCK_FILE.exists():
+            try:
+                _S10_LOCK_FILE.unlink()
+            except Exception:
+                pass
+
+
+def get_step10_bridge_status() -> dict:
+    """بۆ خوێندنەوەی خێرا لە ناو dashboard.py بەبێ هیچ لاگێک"""
+    if _S10_BRIDGE_FILE.exists():
+        try:
+            return _s10_json.loads(_S10_BRIDGE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"status": "STANDBY", "total_learned_patterns": 0}
+
+
+_S10_BG_THREAD_STARTED = False
+
+
+def start_apex_developer_background(interval_seconds: int = 60) -> bool:
+    """
+    کارپێکردنی APEX AI Developer لە باکگراوندی APEX Security بەبێ لاگ
+    """
+    global _S10_BG_THREAD_STARTED
+    if _S10_BG_THREAD_STARTED:
+        return True
+
+    def _guardian_loop():
+        while True:
+            try:
+                run_step10_autonomous_evolution(explicit_approval=False)
+            except Exception:
+                pass
+            _s10_time.sleep(max(15, int(interval_seconds)))
+
+    worker = _s10_threading.Thread(
+        target=_guardian_loop,
+        name="APEX-Developer-Background-Guardian",
+        daemon=True,
+    )
+    worker.start()
+    _S10_BG_THREAD_STARTED = True
+    return True
+
 
 if __name__ == "__main__":
     main()
+    run_step10_autonomous_evolution(explicit_approval=False)

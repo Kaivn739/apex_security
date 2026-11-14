@@ -1,4 +1,8 @@
 import cv2
+from kyc_tier_extension import render_kyc_package_and_payment_box
+
+render_kyc_package_and_payment_box()
+
 
 class KYCEngine:
     def __init__(self):
@@ -11,11 +15,18 @@ class KYCEngine:
         """
         if frame is None:
             return None
-        
+
         # ڕەنگکردنی دەوری فریمەکە وەک نیشانەی AI Detection
         h, w, _ = frame.shape
         cv2.rectangle(frame, (10, 10), (w - 10, h - 10), (0, 255, 0), 2)
-        cv2.putText(frame, "APEX AI ENGINE: ACTIVE", (20, 40), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        
+        cv2.putText(
+            frame,
+            "APEX AI ENGINE: ACTIVE",
+            (20, 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (0, 255, 0),
+            2,
+        )
+
         return frame

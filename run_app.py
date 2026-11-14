@@ -3,7 +3,7 @@ import streamlit as st
 import style
 import auth
 import dashboard
-import kyc
+import kyc_engine as kyc
 import admin
 
 st.set_page_config(page_title="APEX Security System", page_icon="🛡️", layout="wide")

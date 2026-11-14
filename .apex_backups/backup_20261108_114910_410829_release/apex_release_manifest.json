@@ -1,0 +1,60 @@
+{
+    "schema_version": 2,
+    "developer_version": "9.0.0",
+    "created_at": "2026-11-03T21:57:24.827232",
+    "project": "apex",
+    "python_files": [
+        "admin.py",
+        "alerts.py",
+        "alpr_engine.py",
+        "analytics.py",
+        "analytics_view.py",
+        "apex_agent.py",
+        "apex_brain.py",
+        "apex_data.py",
+        "apex_developer.py",
+        "assistant.py",
+        "auth.py",
+        "camera_config_view.py",
+        "cameras.py",
+        "dashboard.py",
+        "database.py",
+        "emergency_alerts_view.py",
+        "face_recognizer.py",
+        "import base64.py",
+        "kyc_engine.py",
+        "map_tracker.py",
+        "run_app.py",
+        "run_step5_isolated_test.py",
+        "screen_analyzer.py",
+        "style.py",
+        "system_health.py",
+        "test_dvr_live.py",
+        "test_dvr_window.py",
+        "test_step5_safe_fix.py",
+        "video_lab.py"
+    ],
+    "python_file_count": 29,
+    "syntax_errors": 0,
+    "import_analysis_errors": 0,
+    "health": {
+        "status": "healthy",
+        "python": "3.11.9",
+        "os": "Windows",
+        "machine": "AMD64",
+        "project_exists": true,
+        "memory_file": true
+    },
+    "release_policy": {
+        "automatic_push": false,
+        "automatic_production_change": false,
+        "automatic_delete": false,
+        "automatic_package_update": false,
+        "automatic_destructive_action": false
+    },
+    "future_step_policy": {
+        "requires_validation": true,
+        "requires_backup": true,
+        "requires_explicit_gate": true
+    }
+}

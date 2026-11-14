@@ -1,0 +1,13 @@
+[
+    {
+        "id": "dee08965-1b37-4691-a757-8f438214e511",
+        "action": "write_files",
+        "description": "Step 7 approval test",
+        "requested_by": "APEX",
+        "level": "MEDIUM",
+        "status": "APPROVED",
+        "created_at": "2026-10-01T13:56:38.413157",
+        "approved_at": "2026-10-01T13:56:38.609631",
+        "approved_by": "STEP7_TEST"
+    }
+]

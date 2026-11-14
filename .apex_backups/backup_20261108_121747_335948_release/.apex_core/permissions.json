@@ -1,0 +1,14 @@
+{
+    "monitor": true,
+    "scan_project": true,
+    "read_files": true,
+    "run_tests": true,
+    "run_safe_commands": true,
+    "write_files": false,
+    "modify_code": false,
+    "install_packages": false,
+    "delete_files": false,
+    "git_commit": false,
+    "git_push": false,
+    "production_change": false
+}

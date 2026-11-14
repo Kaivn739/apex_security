@@ -6,12 +6,16 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from style import apply_apex_style
+from admin_payment_verifier import render_admin_subscription_approvals
+
+render_admin_subscription_approvals()
+
 
 def send_email_to_user(receiver_email, username, access_code):
     # لێرە زانیاری ئیمەیڵی بەڕێوەبەرت دانێ (Gmail App Password پێویستە)
     sender_email = "123shex123@gmail.com"
     sender_password = "mkbf mcbh pycu uxqh"
-    
+
     subject = "🛡 APEX Security - Secure Access Code"
     body = f"""
     Hello {username},
@@ -24,13 +28,13 @@ def send_email_to_user(receiver_email, username, access_code):
     Best regards,
     APEX Security Team
     """
-    
+
     message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = subject
     message.attach(MIMEText(body, "plain"))
-    
+
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
@@ -42,27 +46,38 @@ def send_email_to_user(receiver_email, username, access_code):
         print(f"Error sending email: {e}")
         return False
 
+
 def show_admin():
     apply_apex_style()
-    
+
     _, col2, _ = st.columns([1, 2, 1])
-    
+
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center; color: #FF0033;'>🛡 APEX ADMIN</h1>", unsafe_allow_html=True)
-        st.markdown("<h4 style='text-align: center; color: #A0A0A0;'>SECURE MANAGEMENT CONSOLE</h4><br>", unsafe_allow_html=True)
-        
-        admin_pass = st.text_input("ADMIN ACCESS PASSWORD", type="password", placeholder="Enter admin password...")
-        
+        st.markdown(
+            "<h1 style='text-align: center; color: #FF0033;'>🛡 APEX ADMIN</h1>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<h4 style='text-align: center; color: #A0A0A0;'>SECURE MANAGEMENT CONSOLE</h4><br>",
+            unsafe_allow_html=True,
+        )
+
+        admin_pass = st.text_input(
+            "ADMIN ACCESS PASSWORD",
+            type="password",
+            placeholder="Enter admin password...",
+        )
+
         if admin_pass == "123":
             st.success("✅ دەسەڵاتی بەڕێوەبەر چالاک کرا.")
             st.markdown("---")
             st.subheader("📋 داواکارییە چاوەڕوانکراوەکانی KYC")
-            
-            conn = sqlite3.connect('apex_security.db')
+
+            conn = sqlite3.connect("apex_security.db")
             cursor = conn.cursor()
-            
-            cursor.execute('''
+
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT,
@@ -72,17 +87,20 @@ def show_admin():
                     access_code TEXT,
                     status TEXT
                 )
-            ''')
+            """)
             conn.commit()
-            
-            cursor.execute("SELECT id, username, email, phone, address FROM users WHERE status='Pending'")
+
+            cursor.execute(
+                "SELECT id, username, email, phone, address FROM users WHERE status='Pending'"
+            )
             pending_users = cursor.fetchall()
-            
+
             if not pending_users:
                 st.info("هیچ داواکارییەکی چاوەڕوانکراو نییە.")
             else:
                 for p in pending_users:
-                    st.markdown(f"""
+                    st.markdown(
+                        f"""
                         <div style="background-color: #120505; padding: 15px; border-radius: 8px; border: 1px solid #8B0000; margin-bottom: 10px;">
                             <b>ID:</b> {p[0]}<br>
                             <b>Username/Name:</b> {p[1]}<br>
@@ -90,17 +108,30 @@ def show_admin():
                             <b>Phone:</b> {p[3]}<br>
                             <b>Address:</b> {p[4]}
                         </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if st.button(f"Approve & Email Code to {p[1]}", key=f"approve_btn_{p[0]}"):
-                        generated_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                        cursor.execute("UPDATE users SET access_code = ?, status = 'Approved' WHERE id = ?", (generated_code, p[0]))
+                    """,
+                        unsafe_allow_html=True,
+                    )
+
+                    if st.button(
+                        f"Approve & Email Code to {p[1]}", key=f"approve_btn_{p[0]}"
+                    ):
+                        generated_code = "".join(
+                            random.choices(string.ascii_uppercase + string.digits, k=8)
+                        )
+                        cursor.execute(
+                            "UPDATE users SET access_code = ?, status = 'Approved' WHERE id = ?",
+                            (generated_code, p[0]),
+                        )
                         conn.commit()
 
                         email_sent = send_email_to_user(p[2], p[1], generated_code)
                         if email_sent:
-                            st.success(f"✅ Approval sent and access code emailed to {p[1]}.")
+                            st.success(
+                                f"✅ Approval sent and access code emailed to {p[1]}."
+                            )
                         else:
-                            st.warning("⚠️ User was approved, but email delivery failed.")
+                            st.warning(
+                                "⚠️ User was approved, but email delivery failed."
+                            )
 
                 conn.close()

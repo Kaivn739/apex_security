@@ -1,9 +1,9 @@
 {
     "schema_version": 1,
     "developer_version": "9.0.0",
-    "created_at": "2026-11-03T21:57:26.539390",
+    "created_at": "2026-11-14T08:06:08.525543",
     "stage": "STEP_9_CONTROLLED_CHANGE_ENGINE",
-    "status": "READY_FOR_APPROVAL",
+    "status": "BLOCKED",
     "project": "apex",
     "python_files": [
         "admin.py",
@@ -40,8 +40,8 @@
         "health": true,
         "syntax_clean": true,
         "imports_clean": true,
-        "monitoring_safe": true,
-        "deployment_gate_ready": true
+        "monitoring_safe": false,
+        "deployment_gate_ready": false
     },
     "requested_changes": [],
     "policy": {
