@@ -1,88 +1,116 @@
+from __future__ import annotations
+
 import os
-import cv2
 import threading
-import numpy as np
 import time
+from typing import Any, Dict, Optional, Union
+
+import cv2
+import numpy as np
+
+_cv2: Any = cv2
 
 
-class CameraStreamer:
-    def __init__(self, cam_id, source, cam_type):
+class CameraStream:
+    """خوێندنەوەی سەربەخۆ و بێ-لاگی فریمەکانی کامێرا (Webcam / Capture Card / RTSP)."""
+
+    def __init__(
+        self,
+        source: Union[int, str] = 0,
+        cam_type: str = "Webcam",
+        cam_id: str = "CAM-01",
+    ) -> None:
         self.cam_id = cam_id
-        self.source = source
+        self.source: Union[int, str] = source
         self.cam_type = cam_type
         self.running = True
         self.lock = threading.Lock()
-        self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
-
-        cv2_data = getattr(cv2, "data", None)
-        if cv2_data is not None and hasattr(cv2_data, "haarcascades"):
-            cascade_dir = os.path.join(cv2_data.haarcascades)
-        else:
-            cascade_dir = os.path.join(os.path.dirname(cv2.__file__), "data", "haarcascades")
-
-        cascade_path = os.path.join(cascade_dir, "haarcascade_frontalface_default.xml")
-        self.face_cascade = cv2.CascadeClassifier(cascade_path)
-
-        self.enable_face_id = True
-        self.enable_alpr = True
+        self.frame: Optional[np.ndarray] = None
 
         self.thread = threading.Thread(target=self._update, daemon=True)
         self.thread.start()
 
-    def _update(self):
+    def _open_capture(self) -> Any:
+        if isinstance(self.source, int) or str(self.source).isdigit():
+            idx = int(self.source)
+            backend = (
+                getattr(_cv2, "CAP_DSHOW", 0)
+                if os.name == "nt"
+                else getattr(_cv2, "CAP_ANY", 0)
+            )
+            return _cv2.VideoCapture(idx, backend)
+        return _cv2.VideoCapture(str(self.source))
+
+    def _update(self) -> None:
         while self.running:
-            if str(self.source) == "0" or "Webcam" in str(self.cam_type):
-                cap_source = 0
-            else:
-                cap_source = self.source
+            cap = None
+            try:
+                cap = self._open_capture()
+                if cap is None or not cap.isOpened():
+                    time.sleep(0.5)
+                    continue
 
-            cap = cv2.VideoCapture(cap_source)
+                while self.running and cap.isOpened():
+                    ret, raw = cap.read()
+                    if (
+                        ret
+                        and raw is not None
+                        and isinstance(raw, np.ndarray)
+                        and raw.size > 0
+                    ):
+                        with self.lock:
+                            self.frame = raw
+                    else:
+                        time.sleep(0.01)
+                    time.sleep(0.015)
+            except Exception:
+                time.sleep(0.5)
+            finally:
+                if cap is not None:
+                    try:
+                        cap.release()
+                    except Exception:
+                        pass
 
-            while self.running and cap.isOpened():
-                ret, frame = cap.read()
-
-                if not ret:
-                    time.sleep(0.01)
-                    break
-
-                if frame is not None and frame.size > 0:
-                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    with self.lock:
-                        self.frame = rgb_frame
-
-                time.sleep(0.03)
-
-            cap.release()
-            time.sleep(0.2)
-
-    def get_frame(self):
+    def get_frame(self) -> Optional[np.ndarray]:
         with self.lock:
-            return self.frame.copy()
+            return self.frame.copy() if self.frame is not None else None
 
-    def update_source(self, new_source, new_type):
-        if self.source != new_source or self.cam_type != new_type:
-            self.source = new_source
-            self.cam_type = new_type
+    def release(self) -> None:
+        self.running = False
 
-    def stop(self):
+    def stop(self) -> None:
         self.running = False
 
 
-class APEXCameraManager:
-    def __init__(self, retention_days=90):
-        self.retention_days = retention_days
-        self.streamers = {}
-        self.ai_modes = {}
+class CameraStreamer(CameraStream):
+    """ناوی هاوتا بۆ پشتگیریکردنی مۆدیۆلە کۆنەکان."""
 
-    def get_streamer(self, cam_id, source, cam_type):
-        if cam_id not in self.streamers:
-            self.streamers[cam_id] = CameraStreamer(cam_id, source, cam_type)
+    def __init__(
+        self, cam_id_or_source: Any = 0, source: Any = None, cam_type: str = "Webcam"
+    ) -> None:
+        if source is None:
+            super().__init__(source=cam_id_or_source, cam_type=cam_type)
         else:
-            self.streamers[cam_id].update_source(source, cam_type)
+            super().__init__(
+                source=source, cam_type=cam_type, cam_id=str(cam_id_or_source)
+            )
+
+
+class APEXCameraManager:
+    def __init__(self, retention_days: int = 90) -> None:
+        self.retention_days = retention_days
+        self.streamers: Dict[str, CameraStream] = {}
+
+    def get_streamer(
+        self, cam_id: str, source: Union[int, str], cam_type: str = "Webcam"
+    ) -> CameraStream:
+        if cam_id not in self.streamers:
+            self.streamers[cam_id] = CameraStream(
+                source=source, cam_type=cam_type, cam_id=cam_id
+            )
         return self.streamers[cam_id]
 
-    def set_camera_ai_mode(self, cam_id, face_id=True, alpr=True):
-        self.ai_modes[cam_id] = {"face_id": face_id, "alpr": alpr}
-        if cam_id in self.streamers:
-            self.streamers[cam_id].enable_face_id = face_id
-            self.streamers[cam_id].enable_alpr = alpr
+
+if __name__ == "__main__":
+    print("[CAMERAS ENGINE] Offline Ready")

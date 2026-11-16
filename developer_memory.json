@@ -7463,7 +7463,7 @@
     ],
     "schema_version": 3,
     "developer_version": "9.0.0",
-    "updated_at": "2026-11-14T10:48:20.005874",
+    "updated_at": "2026-11-15T10:09:19.327974",
     "import_runtime_checks": [
         {
             "file": "admin.py",
@@ -9488,8 +9488,8 @@
         "e08ad084b0a6176a": {
             "fingerprint": "e08ad084b0a6176a",
             "first_seen": "2026-11-14T08:06:10.759779",
-            "last_seen": "2026-11-14T10:48:19.839650",
-            "occurrences": 185,
+            "last_seen": "2026-11-15T10:09:19.291587",
+            "occurrences": 445,
             "source": "step6_monitoring",
             "summary": "memory:warning:Physical memory usage is high.",
             "recommended_action": "Trigger pycache cleanup and SmartAISampler throttling",
@@ -9498,8 +9498,8 @@
         "3e5e71e57a076b7b": {
             "fingerprint": "3e5e71e57a076b7b",
             "first_seen": "2026-11-14T08:06:10.759779",
-            "last_seen": "2026-11-14T10:48:19.839650",
-            "occurrences": 185,
+            "last_seen": "2026-11-15T10:09:19.291587",
+            "occurrences": 445,
             "source": "step6_monitoring",
             "summary": "memory:critical:Physical memory usage is very high.",
             "recommended_action": "Trigger pycache cleanup and SmartAISampler throttling",
@@ -10095,6 +10095,838 @@
                 "mode": "LOW_FOOTPRINT_THROTTLED"
             },
             "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-14T10:49:20.405968",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 87.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-14T10:50:21.030375",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-14T10:51:21.827325",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 92.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-14T10:52:23.549722",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-14T10:53:24.560489",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:22:18.571153",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 13,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:23:19.104034",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:24:19.972714",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 1,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:25:21.569178",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 86.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:26:23.542536",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 93.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:27:24.626909",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 93.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:28:25.699948",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:29:27.386839",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 1,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:30:29.443724",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 86.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:31:30.630092",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 77.0,
+                "mode": "OPTIMAL_ZERO_LAG"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:32:31.142783",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 86.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:33:31.775316",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:34:32.285592",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:35:33.192726",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 92.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:36:34.659591",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:37:38.168356",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:38:41.487339",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 92.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 10,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:39:43.739956",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 10,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:40:47.053722",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 87.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:41:48.172963",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 86.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:42:49.165687",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 85.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:43:51.297574",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 85.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:44:54.163947",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 90.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:45:55.406468",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:46:56.289481",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 86.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:47:57.053007",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 85.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:48:57.333129",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 84.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:49:57.579968",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 84.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:50:58.113170",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 84.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:52:00.033920",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 84.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:53:01.401969",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:54:02.289890",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 87.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:55:02.951873",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 88.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:56:03.293652",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 88.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:57:04.030109",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 88.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:58:04.290918",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T09:59:05.844354",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:00:07.080926",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 91.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:01:09.654675",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 92.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:02:11.726641",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 90.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 1,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:03:13.521081",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 89.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:04:14.902840",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 94.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:05:17.194693",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 93.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:06:17.970294",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 92.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:07:18.302307",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 79.0,
+                "mode": "OPTIMAL_ZERO_LAG"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:08:18.710663",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 82.0,
+                "mode": "OPTIMAL_ZERO_LAG"
+            },
+            "cache_items_relieved": 0,
+            "alerts_indexed_this_run": 10,
+            "total_learned_patterns": 2,
+            "bridge_file": "apex_ai_bridge_status.json"
+        },
+        {
+            "step": 10,
+            "timestamp": "2026-11-15T10:09:19.327974",
+            "status": "GUARDED_LEARNING_AND_BRIDGE_ACTIVE",
+            "step8_9_gate_sync": "DEPLOYMENT_BLOCKED",
+            "explicit_source_write_approved": false,
+            "hardware_telemetry": {
+                "cpu_percent": 0.0,
+                "ram_percent": 85.0,
+                "mode": "LOW_FOOTPRINT_THROTTLED"
+            },
+            "cache_items_relieved": 1,
             "alerts_indexed_this_run": 10,
             "total_learned_patterns": 2,
             "bridge_file": "apex_ai_bridge_status.json"

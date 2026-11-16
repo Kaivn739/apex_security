@@ -1,1 +1,8 @@
 venv/
+venv_old/
+__pycache__/
+.apex_backups/
+.apex_remediation 
+*.mp4
+*.db
+*.sqlite

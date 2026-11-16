@@ -1,0 +1,5 @@
+[2026-11-15 10:15:09] [INFO] Integrity baseline updated for 37 core files.
+[2026-11-15 10:15:09] [BLOCKED] Unauthorized external endpoint blocked: https://external-cloud-server.com/upload
+[2026-11-16 08:49:44] [INFO] Integrity baseline updated for 42 core files.
+[2026-11-16 08:49:44] [BLOCKED] Unauthorized external endpoint blocked: https://external-cloud-server.com/upload
+[2026-11-16 09:22:12] [CRITICAL] Shield alert! SigValid=True, Tampered=['auth.py', 'cameras.py', 'dashboard.py', 'db_manager_view.py', 'face_recognizer.py', 'run_app.py', 'style.py'], Missing=['gis-intelligence.py.py']

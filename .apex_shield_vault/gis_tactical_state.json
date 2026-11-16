@@ -1,0 +1,131 @@
+{
+  "updated_at": "2026-11-16T09:18:58.599885",
+  "cameras": {
+    "CAM-01": {
+      "name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "status": "ALERT"
+    },
+    "CAM-02": {
+      "name": "گۆڕەپانی ناوەڕاست (Central Plaza)",
+      "x": 420,
+      "y": 210,
+      "lat": 36.1924,
+      "lon": 44.0115,
+      "status": "ALERT"
+    },
+    "CAM-03": {
+      "name": "شەقامی ڕۆژهەڵات (East Avenue)",
+      "x": 650,
+      "y": 150,
+      "lat": 36.1938,
+      "lon": 44.0142,
+      "status": "ACTIVE"
+    },
+    "CAM-04": {
+      "name": "پارکی ئۆتۆمبێل (South Parking)",
+      "x": 310,
+      "y": 360,
+      "lat": 36.1895,
+      "lon": 44.0102,
+      "status": "ACTIVE"
+    },
+    "CAM-05": {
+      "name": "دەرچوونی ڕۆژئاوا (West Exit)",
+      "x": 580,
+      "y": 380,
+      "lat": 36.1902,
+      "lon": 44.0136,
+      "status": "ACTIVE"
+    }
+  },
+  "suspect_tracks": [
+    {
+      "suspect": "SUSPECT_ALPHA",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FACE_MATCH",
+      "severity": "HIGH",
+      "timestamp": "2026-11-16 08:56:59"
+    },
+    {
+      "suspect": "SUSPECT_ALPHA",
+      "camera_id": "CAM-02",
+      "zone_name": "گۆڕەپانی ناوەڕاست (Central Plaza)",
+      "x": 420,
+      "y": 210,
+      "lat": 36.1924,
+      "lon": 44.0115,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 08:56:59"
+    },
+    {
+      "suspect": "SMOKE_DETECTED (72.8%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 09:14:38"
+    },
+    {
+      "suspect": "SMOKE_DETECTED (70.7%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 09:14:41"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (76.3%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 09:14:41"
+    },
+    {
+      "suspect": "SMOKE_DETECTED (91.1%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 09:18:58"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (82.0%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-16 09:18:58"
+    }
+  ]
+}
