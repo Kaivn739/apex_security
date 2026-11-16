@@ -4,5 +4,3 @@ numpy
 pillow
 psutil
 pandas
-pyarrow
-easyocr
