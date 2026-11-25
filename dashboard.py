@@ -44,10 +44,47 @@ render_gis_intelligence_view: Any = _load_attr(
 )
 render_forensics_view: Any = _load_attr("forensics_view", "render_forensics_view")
 CameraBackend: Any = _load_attr("cameras", "CameraStream", "CameraStreamer")
+AsyncAIWorkerBackend: Any = _load_attr("cameras", "AsyncAIWorker")
 FaceBackend: Any = _load_attr(
     "face_recognizer", "FaceRecognizerEngine", "APEXFaceRecognizer"
 )
 ALPRBackend: Any = _load_attr("alpr_engine", "ALPREngine", "APEXALPRPipeline")
+
+
+def _inject_dvr_styles() -> None:
+    """چەسپاندنی ستایلی تەواوی Hikvision Tactical DVR لەناو Streamlit."""
+    st.markdown(
+        """
+        <style>
+        .dvr-topbar {
+            background: linear-gradient(90deg, #090d16 0%, #111827 50%, #090d16 100%);
+            border: 1px solid #1e293b;
+            border-left: 4px solid #ef4444;
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+        }
+        .dvr-channel-bar {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            padding: 5px 10px;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 @st.cache_resource
@@ -76,9 +113,9 @@ def _init_all_offline_engines() -> Dict[str, Any]:
         ),
     }
 
-    if engines["db"] is not None:
+    if engines["db"] is not None and hasattr(engines["db"], "attach_to_internal_cpu"):
         engines["db"].attach_to_internal_cpu()
-    if engines["gis"] is not None:
+    if engines["gis"] is not None and hasattr(engines["gis"], "attach_to_internal_cpu"):
         engines["gis"].attach_to_internal_cpu()
 
     return engines
@@ -163,8 +200,99 @@ def _get_default_camera_matrix() -> Dict[str, Dict[str, Any]]:
     return st.session_state.camera_ai_matrix
 
 
+def _open_camera_stream(cam_id: str, source: Union[int, str], label: str) -> Any:
+    if CameraBackend is None:
+        return None
+    try:
+        return CameraBackend(source=source, cam_type="Webcam", cam_id=cam_id)
+    except TypeError:
+        try:
+            return CameraBackend(source)
+        except TypeError:
+            return CameraBackend(cam_id, source, label)
+
+
+def _close_camera_stream(cam_obj: Any) -> None:
+    if cam_obj is None:
+        return
+    if hasattr(cam_obj, "release"):
+        cam_obj.release()
+    elif hasattr(cam_obj, "stop"):
+        cam_obj.stop()
+
+
+def _analyze_channel_frame(
+    frame: np.ndarray,
+    cam_id: str,
+    cfg: Dict[str, Any],
+    engines: Dict[str, Any],
+) -> tuple[np.ndarray, List[str]]:
+    """شیکارکردنی فریمێک بە پێی ڕێکخستنی AIـی تایبەت بە هەر کامێرایەک."""
+    analyzed = frame.copy()
+    alerts: List[str] = []
+
+    if cfg.get("fire") and engines["fire"] is not None:
+        try:
+            analyzed, f_det = engines["fire"].process_frame(analyzed, camera_id=cam_id)
+            for d in f_det:
+                alerts.append(f"[{cam_id}] 🔥 {d['type']} ({d['confidence']}%)")
+        except Exception:
+            pass
+
+    if cfg.get("weapon") and engines["weapon"] is not None:
+        try:
+            analyzed, w_det = engines["weapon"].process_frame(analyzed, camera_id=cam_id)
+            for d in w_det:
+                alerts.append(f"[{cam_id}] 🔫 {d['type']} ({d['confidence']}%)")
+        except Exception:
+            pass
+
+    if cfg.get("crowd") and engines["crowd"] is not None:
+        try:
+            analyzed, cr_det = engines["crowd"].process_frame(analyzed, camera_id=cam_id)
+            for d in cr_det:
+                alerts.append(f"[{cam_id}] 📢 {d['type']} ({d['confidence']}%)")
+        except Exception:
+            pass
+
+    if cfg.get("face") and engines["face"] is not None:
+        try:
+            if hasattr(engines["face"], "process_frame_with_details"):
+                analyzed, t_det = engines["face"].process_frame_with_details(analyzed)
+                for t in t_det:
+                    if t.get("status") == "MATCHED":
+                        alerts.append(f"[{cam_id}] 🎯 TARGET: {t.get('name', 'MATCH')}")
+            elif hasattr(engines["face"], "detect_and_draw"):
+                analyzed, f_list = engines["face"].detect_and_draw(
+                    analyzed, enabled=True
+                )
+                if f_list:
+                    alerts.append(f"[{cam_id}] 👤 FACE DETECTED ({len(f_list)})")
+        except Exception:
+            pass
+
+    if (
+        cfg.get("alpr")
+        and engines["alpr"] is not None
+        and hasattr(engines["alpr"], "process_frame")
+    ):
+        try:
+            analyzed, p_det = engines["alpr"].process_frame(analyzed)
+            if isinstance(p_det, list):
+                for p in p_det:
+                    alerts.append(f"[{cam_id}] 🚗 PLATE: {p.get('plate', '')}")
+            elif isinstance(p_det, dict) and p_det.get("plate"):
+                alerts.append(f"[{cam_id}] 🚗 PLATE: {p_det.get('plate', '')}")
+        except Exception:
+            pass
+
+    return analyzed, alerts
+
+
 def show_dashboard() -> None:
     """داشبۆردی سەرەکیی APEX بە ڕووکاری Hikvision DVR Command Center."""
+    _inject_dvr_styles()
+
     if "is_streaming" not in st.session_state:
         st.session_state.is_streaming = False
 
@@ -218,7 +346,7 @@ def show_dashboard() -> None:
         )
         st.markdown("---")
         if st.button(
-            "🚪 چوونەدەرەوە (Logout)", use_container_width=True, key="btn_apex_logout"
+            "🚪 چوونەدەرەوە (Logout)", width="stretch", key="btn_apex_logout"
         ):
             st.session_state.is_streaming = False
             st.session_state.authenticated = False
@@ -228,16 +356,22 @@ def show_dashboard() -> None:
     if nav_tab == "🗄️ DATABASE & 4-STAGE ARCHIVE":
         if render_db_manager_view is not None:
             render_db_manager_view()
+        else:
+            st.warning("مۆدیولی db_manager_view بەردەست نییە.")
         return
 
     if nav_tab == "🗺️ TACTICAL GIS (CIA/FBI MODE)":
         if render_gis_intelligence_view is not None:
             render_gis_intelligence_view()
+        else:
+            st.warning("مۆدیولی gis_intelligence بەردەست نییە.")
         return
 
     if nav_tab == "🔬 FORENSICS & INVESTIGATION":
         if render_forensics_view is not None:
             render_forensics_view()
+        else:
+            st.warning("مۆدیولی forensics_view بەردەست نییە.")
         return
 
     if nav_tab == "⚙️ CAMERA CONFIG & LINKS":
@@ -275,6 +409,8 @@ def show_dashboard() -> None:
             m2.metric("Protected Files", report["protected_files"])
             m3.metric("Cloud / Internet Block", "ACTIVE (100% Offline)")
             st.json(report)
+        else:
+            st.warning("مۆدیولی cyber_shield بەردەست نییە.")
         return
 
     with st.expander(
@@ -331,17 +467,24 @@ def show_dashboard() -> None:
             stream_choice = str(
                 st.selectbox(
                     "سەرچاوەی پەخشی زیندوو:",
-                    ["Webcam (Local 0)", "Capture Card (Index 1)", "Custom RTSP URL"],
+                    [
+                        "Use Camera Matrix Config",
+                        "Webcam (Local 0)",
+                        "Capture Card (Index 1)",
+                        "Custom RTSP URL",
+                    ],
                     key="dvr_stream_src_sel",
                     label_visibility="collapsed",
                 )
-                or "Webcam (Local 0)"
+                or "Use Camera Matrix Config"
             )
-        selected_source: Union[int, str] = 0
-        if stream_choice == "Capture Card (Index 1)":
-            selected_source = 1
+        override_source: Union[int, str, None] = None
+        if stream_choice == "Webcam (Local 0)":
+            override_source = 0
+        elif stream_choice == "Capture Card (Index 1)":
+            override_source = 1
         elif stream_choice == "Custom RTSP URL":
-            selected_source = str(
+            override_source = str(
                 st.text_input(
                     "RTSP:",
                     value="rtsp://admin:12345@192.168.1.64:554/Streaming/Channels/101",
@@ -354,7 +497,7 @@ def show_dashboard() -> None:
         with ctrl2:
             if not st.session_state.is_streaming:
                 if st.button(
-                    "▶ START LIVE DVR", use_container_width=True, key="btn_dvr_start"
+                    "▶ START LIVE DVR", width="stretch", key="btn_dvr_start"
                 ):
                     st.session_state.is_streaming = True
                     st.rerun()
@@ -362,7 +505,7 @@ def show_dashboard() -> None:
                 if st.button(
                     "⏹ STOP LIVE DVR",
                     type="primary",
-                    use_container_width=True,
+                    width="stretch",
                     key="btn_dvr_stop",
                 ):
                     st.session_state.is_streaming = False
@@ -394,79 +537,45 @@ def show_dashboard() -> None:
                 tags.append("CROWD")
             return tags
 
+        cam_boxes: Dict[str, Any] = {}
         if grid_mode == "1x1 Focus (CAM-01)":
             st.markdown(
                 f"<div class='dvr-channel-bar'>🔴 CH-01 | {cam_matrix['CAM-01']['name']} | AI: {', '.join(_active_ai_tags('CAM-01'))}</div>",
                 unsafe_allow_html=True,
             )
-            cam1_box = st.empty()
-            cam2_box, cam3_box, cam4_box = None, None, None
-            if not st.session_state.is_streaming:
-                cam1_box.image(
-                    _make_standby_frame(
-                        "CAM-01",
-                        cam_matrix["CAM-01"]["name"],
-                        _active_ai_tags("CAM-01"),
-                    ),
-                    use_container_width=True,
-                )
+            cam_boxes["CAM-01"] = st.empty()
         else:
             g1, g2 = st.columns(2)
             with g1:
                 st.markdown(
-                    f"<div class='dvr-channel-bar'>🔴 CH-01 | {cam_matrix['CAM-01']['name']}</div>",
+                    f"<div class='dvr-channel-bar'>🔴 CH-01 | {cam_matrix['CAM-01']['name']} | {', '.join(_active_ai_tags('CAM-01'))}</div>",
                     unsafe_allow_html=True,
                 )
-                cam1_box = st.empty()
+                cam_boxes["CAM-01"] = st.empty()
                 st.markdown(
-                    f"<div class='dvr-channel-bar'>🔴 CH-03 | {cam_matrix['CAM-03']['name']}</div>",
+                    f"<div class='dvr-channel-bar'>🔴 CH-03 | {cam_matrix['CAM-03']['name']} | {', '.join(_active_ai_tags('CAM-03'))}</div>",
                     unsafe_allow_html=True,
                 )
-                cam3_box = st.empty()
+                cam_boxes["CAM-03"] = st.empty()
             with g2:
                 st.markdown(
-                    f"<div class='dvr-channel-bar'>🔴 CH-02 | {cam_matrix['CAM-02']['name']}</div>",
+                    f"<div class='dvr-channel-bar'>🔴 CH-02 | {cam_matrix['CAM-02']['name']} | {', '.join(_active_ai_tags('CAM-02'))}</div>",
                     unsafe_allow_html=True,
                 )
-                cam2_box = st.empty()
+                cam_boxes["CAM-02"] = st.empty()
                 st.markdown(
-                    f"<div class='dvr-channel-bar'>🔴 CH-04 | {cam_matrix['CAM-04']['name']}</div>",
+                    f"<div class='dvr-channel-bar'>🔴 CH-04 | {cam_matrix['CAM-04']['name']} | {', '.join(_active_ai_tags('CAM-04'))}</div>",
                     unsafe_allow_html=True,
                 )
-                cam4_box = st.empty()
+                cam_boxes["CAM-04"] = st.empty()
 
-            if not st.session_state.is_streaming:
-                cam1_box.image(
+        if not st.session_state.is_streaming:
+            for cid, box in cam_boxes.items():
+                box.image(
                     _make_standby_frame(
-                        "CAM-01",
-                        cam_matrix["CAM-01"]["name"],
-                        _active_ai_tags("CAM-01"),
+                        cid, cam_matrix[cid]["name"], _active_ai_tags(cid)
                     ),
-                    use_container_width=True,
-                )
-                cam2_box.image(
-                    _make_standby_frame(
-                        "CAM-02",
-                        cam_matrix["CAM-02"]["name"],
-                        _active_ai_tags("CAM-02"),
-                    ),
-                    use_container_width=True,
-                )
-                cam3_box.image(
-                    _make_standby_frame(
-                        "CAM-03",
-                        cam_matrix["CAM-03"]["name"],
-                        _active_ai_tags("CAM-03"),
-                    ),
-                    use_container_width=True,
-                )
-                cam4_box.image(
-                    _make_standby_frame(
-                        "CAM-04",
-                        cam_matrix["CAM-04"]["name"],
-                        _active_ai_tags("CAM-04"),
-                    ),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
     with right_panel:
@@ -477,120 +586,141 @@ def show_dashboard() -> None:
 
         with st.container(border=True):
             st.markdown("##### 🤖 ACTIVE AI MODULES")
-            st.markdown("🟢 **Fire & Smoke AI:** READY")
-            st.markdown("🟢 **Weapon & Gunfire AI:** READY")
-            st.markdown("🟢 **Crowd & Distress AI:** READY")
-            st.markdown("🟢 **Face ID & ALPR:** READY")
+            st.markdown(
+                f"{'🟢' if engines['fire'] else '🟡'} **Fire & Smoke AI:** {'READY' if engines['fire'] else 'STANDBY'}"
+            )
+            st.markdown(
+                f"{'🟢' if engines['weapon'] else '🟡'} **Weapon & Gunfire AI:** {'READY' if engines['weapon'] else 'STANDBY'}"
+            )
+            st.markdown(
+                f"{'🟢' if engines['crowd'] else '🟡'} **Crowd & Distress AI:** {'READY' if engines['crowd'] else 'STANDBY'}"
+            )
+            st.markdown(
+                f"{'🟢' if (engines['face'] or engines['alpr']) else '🟡'} **Face ID & ALPR:** {'READY' if (engines['face'] or engines['alpr']) else 'STANDBY'}"
+            )
 
     if st.session_state.is_streaming:
         if CameraBackend is None:
             st.error("فایلی cameras.py نەدۆزرایەوە.")
             return
 
-        try:
-            cam = CameraBackend(selected_source)
-        except TypeError:
-            cam = CameraBackend("CAM-01", selected_source, "Webcam")
+        active_cids = list(cam_boxes.keys())
+        streams_by_source: Dict[Union[int, str], Any] = {}
+        channel_sources: Dict[str, Union[int, str]] = {}
+        ai_workers: Dict[str, Any] = {}
+
+        for cid in active_cids:
+            src = (
+                override_source
+                if override_source is not None
+                else cam_matrix[cid]["source"]
+            )
+            channel_sources[cid] = src
+            if src not in streams_by_source:
+                streams_by_source[src] = _open_camera_stream(
+                    cid, src, str(cam_matrix[cid]["name"])
+                )
+
+            if AsyncAIWorkerBackend is not None:
+                ch_cfg = dict(cam_matrix[cid])
+                ai_workers[cid] = AsyncAIWorkerBackend(
+                    cid,
+                    lambda frm, c_id=cid, c_cfg=ch_cfg: _analyze_channel_frame(
+                        frm, c_id, c_cfg, engines
+                    ),
+                )
 
         frame_idx = 0
+        recent_alerts: List[str] = []
 
-        while st.session_state.get("is_streaming", False):
-            raw_frame = cam.get_frame()
-            if (
-                raw_frame is None
-                or not isinstance(raw_frame, np.ndarray)
-                or raw_frame.size == 0
-            ):
-                time.sleep(0.01)
-                continue
+        try:
+            while st.session_state.get("is_streaming", False):
+                frames_by_source: Dict[Union[int, str], np.ndarray] = {}
+                ai_frames_by_source: Dict[Union[int, str], np.ndarray] = {}
 
-            frame_idx += 1
-            run_ai_now = frame_idx % 4 == 0
-            if get_internal_cpu is not None:
-                run_ai_now = get_internal_cpu().should_process_frame(frame_idx)
+                for src, stream_obj in streams_by_source.items():
+                    if stream_obj is None:
+                        continue
+                    raw = stream_obj.get_frame(copy=False)
+                    if (
+                        raw is not None
+                        and isinstance(raw, np.ndarray)
+                        and raw.size > 0
+                    ):
+                        frames_by_source[src] = raw
+                        if hasattr(stream_obj, "get_ai_frame"):
+                            ai_frm = stream_obj.get_ai_frame(max_width=640)
+                            if ai_frm is not None:
+                                ai_frames_by_source[src] = ai_frm
 
-            analyzed_frame = raw_frame.copy()
-            all_alerts: List[str] = []
+                if not frames_by_source:
+                    time.sleep(0.02)
+                    continue
 
-            if run_ai_now:
-                c1_cfg = cam_matrix["CAM-01"]
-                if c1_cfg["fire"] and engines["fire"] is not None:
-                    analyzed_frame, f_det = engines["fire"].process_frame(
-                        analyzed_frame, camera_id="CAM-01"
-                    )
-                    for d in f_det:
-                        all_alerts.append(f"🔥 {d['type']} ({d['confidence']}%)")
+                frame_idx += 1
+                submit_ai_now = frame_idx % 3 == 0
+                if get_internal_cpu is not None:
+                    submit_ai_now = get_internal_cpu().should_process_frame(frame_idx)
 
-                if c1_cfg["weapon"] and engines["weapon"] is not None:
-                    analyzed_frame, w_det = engines["weapon"].process_frame(
-                        analyzed_frame, camera_id="CAM-01"
-                    )
-                    for d in w_det:
-                        all_alerts.append(f"🔫 {d['type']} ({d['confidence']}%)")
+                cycle_alerts: List[str] = []
 
-                if c1_cfg["crowd"] and engines["crowd"] is not None:
-                    analyzed_frame, cr_det = engines["crowd"].process_frame(
-                        analyzed_frame, camera_id="CAM-01"
-                    )
-                    for d in cr_det:
-                        all_alerts.append(f"📢 {d['type']} ({d['confidence']}%)")
-
-                if c1_cfg["face"] and engines["face"] is not None:
-                    try:
-                        if hasattr(engines["face"], "process_frame_with_details"):
-                            analyzed_frame, t_det = engines[
-                                "face"
-                            ].process_frame_with_details(analyzed_frame)
-                            for t in t_det:
-                                if t.get("status") == "MATCHED":
-                                    all_alerts.append(
-                                        f"🎯 TARGET: {t.get('name', 'MATCH')}"
-                                    )
-                        elif hasattr(engines["face"], "detect_and_draw"):
-                            analyzed_frame, f_list = engines["face"].detect_and_draw(
-                                analyzed_frame, enabled=True
-                            )
-                            if f_list:
-                                all_alerts.append(f"👤 FACE DETECTED ({len(f_list)})")
-                    except Exception:
-                        pass
-
-                if (
-                    c1_cfg["alpr"]
-                    and engines["alpr"] is not None
-                    and hasattr(engines["alpr"], "process_frame")
-                ):
-                    try:
-                        analyzed_frame, p_det = engines["alpr"].process_frame(
-                            analyzed_frame
+                for cid in active_cids:
+                    src = channel_sources[cid]
+                    raw_frame = frames_by_source.get(src)
+                    if raw_frame is None:
+                        cam_boxes[cid].image(
+                            _make_standby_frame(
+                                cid, cam_matrix[cid]["name"], _active_ai_tags(cid)
+                            ),
+                            width="stretch",
                         )
-                        if isinstance(p_det, list):
-                            for p in p_det:
-                                all_alerts.append(f"🚗 PLATE: {p.get('plate', '')}")
-                        elif isinstance(p_det, dict) and p_det.get("plate"):
-                            all_alerts.append(f"🚗 PLATE: {p_det.get('plate', '')}")
-                    except Exception:
-                        pass
+                        continue
 
-            rgb_main = _cv2.cvtColor(analyzed_frame, _cv2.COLOR_BGR2RGB)
-            rgb_raw = _cv2.cvtColor(raw_frame, _cv2.COLOR_BGR2RGB)
+                    worker = ai_workers.get(cid)
+                    if worker is not None:
+                        if submit_ai_now:
+                            ai_input = ai_frames_by_source.get(src, raw_frame)
+                            worker.submit_frame(ai_input)
 
-            cam1_box.image(rgb_main, use_container_width=True)
-            if cam2_box is not None and cam3_box is not None and cam4_box is not None:
-                cam2_box.image(rgb_raw, use_container_width=True)
-                cam3_box.image(rgb_raw, use_container_width=True)
-                cam4_box.image(rgb_raw, use_container_width=True)
+                        annotated_ai, ch_alerts = worker.get_latest_result(
+                            max_age_sec=1.0
+                        )
+                        cycle_alerts.extend(ch_alerts)
+                        display_bgr = (
+                            annotated_ai if annotated_ai is not None else raw_frame
+                        )
+                    else:
+                        if submit_ai_now:
+                            display_bgr, ch_alerts = _analyze_channel_frame(
+                                raw_frame, cid, cam_matrix[cid], engines
+                            )
+                            cycle_alerts.extend(ch_alerts)
+                        else:
+                            display_bgr = raw_frame
 
-            if all_alerts:
-                live_feed_box.error("\n\n".join(all_alerts))
+                    rgb_out = _cv2.cvtColor(display_bgr, _cv2.COLOR_BGR2RGB)
+                    cam_boxes[cid].image(rgb_out, width="stretch")
 
-            time.sleep(0.005)
+                if cycle_alerts:
+                    stamp = datetime.now().strftime("%H:%M:%S")
+                    for alert_msg in cycle_alerts:
+                        recent_alerts.insert(0, f"`{stamp}` {alert_msg}")
+                    recent_alerts = recent_alerts[:12]
+                    live_feed_box.error("\n\n".join(recent_alerts))
 
-        if hasattr(cam, "release"):
-            cam.release()
-        elif hasattr(cam, "stop"):
-            cam.stop()
+                time.sleep(0.025)
+        finally:
+            for worker in ai_workers.values():
+                worker.stop()
+            for stream_obj in streams_by_source.values():
+                _close_camera_stream(stream_obj)
 
 
 if __name__ == "__main__":
+    st.set_page_config(
+        page_title="APEX Security DVR",
+        page_icon="🐉",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
     show_dashboard()

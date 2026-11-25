@@ -1,0 +1,20 @@
+{
+    "version": "10.0.0",
+    "updated_at": "2026-11-17T11:21:27.771285",
+    "authority": {
+        "version": "10.0.0",
+        "approval_required": true,
+        "approved_plans_in_memory": 0,
+        "automatic_deployment": false,
+        "automatic_git_push": false,
+        "dangerous_actions_allowed": false,
+        "status": "PROTECTED"
+    },
+    "risk_policy": {
+        "read_only": "ALLOWED",
+        "low_risk_local_fix": "BACKUP_AND_TEST_REQUIRED",
+        "high_impact_change": "OWNER_APPROVAL_REQUIRED",
+        "destructive_action": "BLOCKED",
+        "unknown_action": "BLOCKED"
+    }
+}

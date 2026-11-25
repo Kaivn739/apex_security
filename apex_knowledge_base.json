@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "knowledge_base_name": "APEX Local Autonomous Intelligence",
+  "python_solutions": [
+    {
+      "error_signature": "ModuleNotFoundError",
+      "cause": "Missing imported package or module in environment",
+      "remediation": "Check requirements.txt and verify environment libraries."
+    },
+    {
+      "error_signature": "SyntaxError",
+      "cause": "Invalid Python syntax or bad indentation",
+      "remediation": "Apply safe formatting cleanup and validate syntax tree via AST."
+    },
+    {
+      "error_signature": "IndentationError",
+      "cause": "Mixed tabs and spaces or incorrect indentation block",
+      "remediation": "Normalize indentation to standard 4 spaces."
+    }
+  ],
+  "html_solutions": [
+    {
+      "error_signature": "Unclosed tag",
+      "cause": "HTML tag structural mismatch",
+      "remediation": "Verify opening and closing tag pairs."
+    }
+  ]
+}
