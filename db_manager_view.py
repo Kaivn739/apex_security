@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -46,6 +47,7 @@ class APEXDatabaseLifecycleManager:
             if APEXCyberShield is not None
             else None
         )
+        self._recent_event_guard: Dict[str, float] = {}
         self.init_tables()
 
     def _connect(self) -> sqlite3.Connection:
@@ -232,9 +234,11 @@ class APEXDatabaseLifecycleManager:
         search_query: str = "",
         year_filter: str = "ALL",
         limit: int = 100,
+        run_rotation: bool = True,
     ) -> List[Dict[str, Any]]:
         """هێنانی داتاکان بەپێی قۆناغ، ناوی تارگێت، ژمارەی فەحس، یان ساڵ."""
-        self.run_lifecycle_rotation()
+        if run_rotation:
+            self.run_lifecycle_rotation()
         conn = self._connect()
         cur = conn.cursor()
 
@@ -310,16 +314,26 @@ class APEXDatabaseLifecycleManager:
         return ok
 
     def attach_to_internal_cpu(self) -> None:
-        """بەستنەوەی خۆکار بە CPU ناوخۆیی تا هەر ڕووداوێکی AI ڕاستەوخۆ تۆمار بکرێت."""
+        """بەستنەوەی خۆکار بە CPU ناوخۆیی لەگەڵ پارێزگاری دژی دووبارەبوونەوەی خێرا."""
         if get_internal_cpu is None:
             return
 
         def _on_event(ev: Any) -> None:
+            cam_id = str(getattr(ev, "camera_id", "CAM-01"))
+            ev_type = str(getattr(ev, "event_type", "AI_EVENT"))
+            title = str(getattr(ev, "title", "ALERT"))
+            guard_key = f"{cam_id}:{ev_type}:{title}"
+            now = time.monotonic()
+            last_ts = self._recent_event_guard.get(guard_key, 0.0)
+            if (now - last_ts) < 8.0:
+                return
+            self._recent_event_guard[guard_key] = now
+
             self.log_detection_record(
-                target_name=str(getattr(ev, "title", "ALERT")),
-                event_type=str(getattr(ev, "event_type", "AI_EVENT")),
-                camera_id=str(getattr(ev, "camera_id", "CAM-01")),
-                location_name=f"Zone-{getattr(ev, 'camera_id', 'CAM-01')}",
+                target_name=title,
+                event_type=ev_type,
+                camera_id=cam_id,
+                location_name=f"Zone-{cam_id}",
                 severity=str(getattr(ev, "severity", "HIGH")),
                 notes=str(getattr(ev, "details", "")),
             )
@@ -373,7 +387,10 @@ def render_db_manager_view() -> None:
         )
 
     records = manager.fetch_records(
-        stage=stage_label, search_query=search_txt, year_filter=year_sel
+        stage=stage_label,
+        search_query=search_txt,
+        year_filter=year_sel,
+        run_rotation=False,
     )
 
     left_col, right_col = st.columns([2.2, 1.2])
@@ -465,7 +482,7 @@ def render_db_manager_view() -> None:
             with st.container(border=True):
                 snap_file = str(latest.get("snapshot_path", ""))
                 if snap_file and os.path.exists(snap_file):
-                    st.image(snap_file, use_container_width=True)
+                    st.image(snap_file, width="stretch")
                 st.markdown(f"**🎯 تارگێت:** `{latest['target_name']}`")
                 st.markdown(
                     f"**📍 شوێن:** {latest['location_name']} ({latest['camera_id']})"
