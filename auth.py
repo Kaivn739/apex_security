@@ -4,20 +4,31 @@ import hashlib
 import os
 import sqlite3
 import time
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
 import style
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
 try:
-    from subscription_manager import DB_NAME, ensure_free_trial_account
+    from subscription_manager import DB_NAME as _SUB_DB_NAME, ensure_free_trial_account
+
+    DB_PATH = str(PROJECT_ROOT / os.path.basename(str(_SUB_DB_NAME)))
 except ImportError:
-    DB_NAME = "apex_security.db"
+    DB_PATH = str(PROJECT_ROOT / "apex_security.db")
     ensure_free_trial_account = None  # type: ignore[assignment]
 
 
+def _connect_db() -> sqlite3.Connection:
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    return conn
+
+
 def _init_users_table() -> None:
-    conn = sqlite3.connect(DB_NAME)
+    conn = _connect_db()
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS app_users (
@@ -41,17 +52,18 @@ def _hash_pw(pw: str) -> str:
 
 
 def login_screen() -> None:
-    """شاشەی دەستپێکی ٣ چرکەیی دراگۆن و چوونەژوورەوەی پارێزراو."""
+    """شاشەی دەستپێکی خێرای دراگۆن و چوونەژوورەوەی پارێزراو (100% Offline)."""
     _init_users_table()
-    style.apply_dragon_login_style()
+    if hasattr(style, "apply_dragon_login_style"):
+        style.apply_dragon_login_style()
 
-    # قۆناغی ١: ئەنیمەیشنی ٣ چرکەیی دراگۆن و دروشمی for Safe, for Ever
+    # قۆناغی ١: شاشەی دەستپێکی خێرای دراگۆن و دروشمی for Safe, for Ever
     if not st.session_state.get("dragon_intro_done", False):
         _, mid_col, _ = st.columns([1, 2.4, 1])
         with mid_col:
-            dragon_img_html = ""
-            if os.path.exists("dragon_bg.jpg"):
-                b64_img = style.get_base64_of_bin_file("dragon_bg.jpg")
+            dragon_path = PROJECT_ROOT / "dragon_bg.jpg"
+            if dragon_path.exists() and hasattr(style, "get_base64_of_bin_file"):
+                b64_img = style.get_base64_of_bin_file(str(dragon_path))
                 dragon_img_html = (
                     f"<img src='data:image/jpg;base64,{b64_img}' "
                     "style='width:150px; height:150px; border-radius:50%; "
@@ -73,7 +85,7 @@ def login_screen() -> None:
                 """,
                 unsafe_allow_html=True,
             )
-        time.sleep(3.0)
+        time.sleep(1.2)
         st.session_state.dragon_intro_done = True
         st.rerun()
         return
@@ -114,7 +126,7 @@ def login_screen() -> None:
                     or ""
                 )
                 submit = st.form_submit_button(
-                    "LOGIN TO COMMAND CENTER", use_container_width=True
+                    "LOGIN TO COMMAND CENTER", width="stretch"
                 )
 
                 if submit:
@@ -125,7 +137,7 @@ def login_screen() -> None:
                         st.session_state.username = "admin"
                         st.rerun()
 
-                    conn = sqlite3.connect(DB_NAME)
+                    conn = _connect_db()
                     cursor = conn.cursor()
                     cursor.execute(
                         "SELECT password_hash FROM app_users WHERE username = ?",
@@ -162,7 +174,7 @@ def login_screen() -> None:
                     or ""
                 )
                 reg_submit = st.form_submit_button(
-                    "🚀 دروستکردنی هەژمار", use_container_width=True
+                    "🚀 دروستکردنی هەژمار", width="stretch"
                 )
 
                 if reg_submit:
@@ -173,7 +185,7 @@ def login_screen() -> None:
                         )
                     else:
                         try:
-                            conn = sqlite3.connect(DB_NAME)
+                            conn = _connect_db()
                             cursor = conn.cursor()
                             cursor.execute(
                                 "INSERT INTO app_users (username, password_hash, full_name) VALUES (?, ?, ?)",
