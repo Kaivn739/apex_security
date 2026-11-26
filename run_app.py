@@ -21,7 +21,8 @@ def main() -> None:
     if not st.session_state.authenticated:
         auth.login_screen()
     else:
-        style.apply_custom_style()
+        if hasattr(style, "apply_custom_style"):
+            style.apply_custom_style()
         dashboard.show_dashboard()
 
 

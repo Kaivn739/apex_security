@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -37,6 +39,7 @@ class APEXGISIntelligenceEngine:
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         self.cameras: Dict[str, Dict[str, Any]] = {}
         self.suspect_tracks: List[Dict[str, Any]] = []
+        self._recent_track_guard: Dict[str, float] = {}
         self._load_or_seed_state()
 
     def _load_or_seed_state(self) -> None:
@@ -97,16 +100,22 @@ class APEXGISIntelligenceEngine:
         self._save_state()
 
     def _save_state(self) -> None:
+        tmp_path = self.state_file.with_suffix(".json.tmp")
         try:
             payload = {
                 "updated_at": datetime.now().isoformat(),
                 "cameras": self.cameras,
                 "suspect_tracks": self.suspect_tracks[-60:],
             }
-            with open(self.state_file, "w", encoding="utf-8") as f:
+            with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, self.state_file)
         except Exception:
-            pass
+            if tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    pass
 
     def register_camera_node(
         self,
@@ -163,6 +172,12 @@ class APEXGISIntelligenceEngine:
         self.suspect_tracks.append(entry)
         self._save_state()
         return entry
+
+    def reset_camera_alerts(self) -> None:
+        """گەڕاندنەوەی دۆخی هەموو کامێراکان بۆ ACTIVE دوای پشکنین."""
+        for cam in self.cameras.values():
+            cam["status"] = "ACTIVE"
+        self._save_state()
 
     def render_tactical_map(self, width: int = 800, height: int = 480) -> np.ndarray:
         """کێشانی نەخشەی تاکتیکیی ئاستی CIA/FBI بە ١٠٠٪ ئۆفلاین."""
@@ -235,15 +250,23 @@ class APEXGISIntelligenceEngine:
         return canvas
 
     def attach_to_internal_cpu(self) -> None:
-        """بەستنەوەی خۆکار بە CPU ناوخۆیی تا جوڵەی تاوانباران لەسەر نەخشەکە بنەخشێنرێت."""
+        """بەستنەوەی خۆکار بە CPU ناوخۆیی لەگەڵ پارێزگاری دژی نووسینی دووبارەی خێرا."""
         if get_internal_cpu is None:
             return
 
         def _on_event(ev: Any) -> None:
+            cam_id = str(getattr(ev, "camera_id", "CAM-01"))
+            ev_type = str(getattr(ev, "event_type", "ALERT"))
+            guard_key = f"{cam_id}:{ev_type}"
+            now = time.monotonic()
+            if (now - self._recent_track_guard.get(guard_key, 0.0)) < 6.0:
+                return
+            self._recent_track_guard[guard_key] = now
+
             self.record_suspect_movement(
                 suspect_label=str(getattr(ev, "title", "SUSPECT")),
-                camera_id=str(getattr(ev, "camera_id", "CAM-01")),
-                threat_type=str(getattr(ev, "event_type", "ALERT")),
+                camera_id=cam_id,
+                threat_type=ev_type,
                 severity=str(getattr(ev, "severity", "HIGH")),
             )
 
@@ -262,7 +285,7 @@ def render_gis_intelligence_view() -> None:
     with map_col:
         tactical_bgr = gis.render_tactical_map(width=820, height=480)
         tactical_rgb = _cv2.cvtColor(tactical_bgr, _cv2.COLOR_BGR2RGB)
-        st.image(tactical_rgb, use_container_width=True)
+        st.image(tactical_rgb, width="stretch")
 
     with ctrl_col:
         st.markdown("##### 📡 دۆخی کامێرا و خاڵەکان")
@@ -271,6 +294,10 @@ def render_gis_intelligence_view() -> None:
             st.write(
                 f"{badge} **{cid}**: {cinfo['name']} (`{cinfo['lat']}, {cinfo['lon']}`)"
             )
+
+        if st.button("🔄 سڕینەوەی ئاگادارییە سوورەکانی سەر نەخشە", key="gis_reset_alerts"):
+            gis.reset_camera_alerts()
+            st.rerun()
 
         st.markdown("---")
         st.markdown("##### 🎯 دیاریکردنی شوێنی گومانلێکراو")
@@ -287,6 +314,7 @@ def render_gis_intelligence_view() -> None:
                     sus_name.strip(), sus_cam, "MANUAL_TRACK", "CRITICAL"
                 )
                 st.success(f"شوێنی `{sus_name}` لەسەر {sus_cam} دیاری کرا.")
+                st.rerun()
 
     if gis.suspect_tracks:
         st.markdown("##### 🧭 زنجیرەی جوڵەی دۆزراوەکان")

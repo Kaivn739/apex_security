@@ -29,6 +29,8 @@ class APEXForensicsEngine:
     def __init__(self, db_name: str = "apex_security.db") -> None:
         self.project_root: Path = Path(__file__).resolve().parent
         self.db_path: Path = self.project_root / db_name
+        self.snapshot_dir: Path = self.project_root / "apex_snapshots"
+        self.snapshot_dir.mkdir(parents=True, exist_ok=True)
         self.init_forensics_tables()
 
     def _connect(self) -> sqlite3.Connection:
@@ -77,7 +79,7 @@ class APEXForensicsEngine:
 
         lab: np.ndarray = _cv2.cvtColor(img, _cv2.COLOR_BGR2LAB)
         l_ch, a_ch, b_ch = _cv2.split(lab)
-        clahe: Any = _cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        clahe: Any = _cv2.createCLAHE(clipLimit=2.8, tileGridSize=(8, 8))
         l_enhanced: np.ndarray = clahe.apply(l_ch)
         merged: np.ndarray = _cv2.merge([l_enhanced, a_ch, b_ch])
         enhanced_bgr: np.ndarray = _cv2.cvtColor(merged, _cv2.COLOR_LAB2BGR)
@@ -93,8 +95,9 @@ class APEXForensicsEngine:
         investigator_notes: str = "",
     ) -> str:
         """دروستکردنی دۆسیەی نوێی فەحس و بەستنەوەی بە بەڵگەوە."""
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        case_num = f"CASE-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        now = datetime.now()
+        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        case_num = f"CASE-{now.strftime('%Y%m%d-%H%M%S')}-{now.microsecond // 1000:03d}"
         ev_hash = self.compute_evidence_sha256(evidence_path)
 
         conn = self._connect()
@@ -119,6 +122,18 @@ class APEXForensicsEngine:
         conn.commit()
         conn.close()
         return case_num
+
+    def update_case_status(self, case_id: int, new_status: str) -> bool:
+        conn = self._connect()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE forensic_cases SET case_status = ? WHERE id = ?",
+            (str(new_status).upper(), int(case_id)),
+        )
+        ok = cur.rowcount > 0
+        conn.commit()
+        conn.close()
+        return ok
 
     def list_cases(self, keyword: str = "") -> List[Dict[str, Any]]:
         conn = self._connect()
@@ -169,30 +184,81 @@ def render_forensics_view() -> None:
         return
 
     engine = APEXForensicsEngine()
-    st.markdown("## 🔬 APEX FORENSICS & CRIMINAL INVESTIGATION")
+    st.markdown("## 🔬 APEX FORENSICS & CRIMINAL INVESTIGATION LAB")
 
-    col_form, col_list = st.columns([1.2, 1.8])
+    snap_files = sorted(
+        [
+            str(p)
+            for p in engine.snapshot_dir.glob("*.jpg")
+            if p.is_file()
+        ],
+        reverse=True,
+    )
+
+    col_form, col_list = st.columns([1.25, 1.75])
     with col_form:
         with st.container(border=True):
             st.markdown("##### 📁 کردنەوەی دۆسیەی نوێی فەحس")
-            s_name = st.text_input("ناوی تاوانبار / گومانلێکراو:", key="for_sus_name")
-            s_id = st.text_input("ژمارەی ناسنامە یان تابلۆ:", key="for_sus_id")
-            s_level = st.selectbox(
-                "ئاستی مەترسی:", ["CRITICAL", "HIGH", "MEDIUM", "LOW"], key="for_level"
+            s_name = str(st.text_input("ناوی تاوانبار / گومانلێکراو:", key="for_sus_name") or "")
+            s_id = str(st.text_input("ژمارەی ناسنامە یان تابلۆ:", key="for_sus_id") or "")
+            s_level = str(
+                st.selectbox(
+                    "ئاستی مەترسی:", ["CRITICAL", "HIGH", "MEDIUM", "LOW"], key="for_level"
+                )
+                or "HIGH"
             )
-            s_notes = st.text_area("ڕاپۆرتی لێکۆڵەر:", key="for_notes")
-            if st.button("⚖️ تۆمارکردنی دۆسیەی فەحس", key="for_create_btn"):
+            ev_options = ["NONE"] + [os.path.basename(p) for p in snap_files[:30]]
+            selected_ev_name = str(
+                st.selectbox("بەستنەوەی بەڵگەی وێنەیی (SHA-256):", ev_options, key="for_ev_sel")
+                or "NONE"
+            )
+            ev_path = (
+                str(engine.snapshot_dir / selected_ev_name)
+                if selected_ev_name != "NONE"
+                else ""
+            )
+            s_notes = str(st.text_area("ڕاپۆرتی لێکۆڵەر:", key="for_notes") or "")
+            if st.button("⚖️ تۆمارکردنی دۆسیەی فەحس", width="stretch", key="for_create_btn"):
                 if s_name.strip():
                     c_num = engine.create_or_update_case(
                         suspect_name=s_name,
                         national_or_plate_id=s_id,
                         threat_level=s_level,
+                        evidence_path=ev_path,
                         investigator_notes=s_notes,
                     )
                     st.success(f"دۆسیەی فەحس بە ژمارەی `{c_num}` دروست کرا.")
 
+        if snap_files:
+            with st.container(border=True):
+                st.markdown("##### 🔍 تاقیگەی ڕووناککردنەوەی بەڵگە (CLAHE Enhancer)")
+                lab_choice = str(
+                    st.selectbox(
+                        "وێنەی بەڵگە هەڵبژێرە:",
+                        [os.path.basename(p) for p in snap_files[:20]],
+                        key="for_lab_img",
+                    )
+                    or ""
+                )
+                if lab_choice:
+                    full_lab_path = str(engine.snapshot_dir / lab_choice)
+                    enhanced = engine.enhance_evidence_image(full_lab_path)
+                    if enhanced is not None:
+                        c_orig, c_enh = st.columns(2)
+                        with c_orig:
+                            st.caption("وێنەی ڕەسەن")
+                            st.image(full_lab_path, width="stretch")
+                        with c_enh:
+                            st.caption("ڕووناککراوە (CLAHE)")
+                            enh_rgb = _cv2.cvtColor(enhanced, _cv2.COLOR_BGR2RGB)
+                            st.image(enh_rgb, width="stretch")
+                        st.code(
+                            f"SHA-256: {engine.compute_evidence_sha256(full_lab_path)}",
+                            language="text",
+                        )
+
     with col_list:
-        search_q = st.text_input("گەڕان لە ناو دۆسیەکانی فەحس:", key="for_search_inp")
+        search_q = str(st.text_input("گەڕان لە ناو دۆسیەکانی فەحس:", key="for_search_inp") or "")
         cases = engine.list_cases(search_q)
         if not cases:
             st.info("هیچ دۆسیەیەکی فەحس تۆمار نەکراوە.")
@@ -208,6 +274,23 @@ def render_forensics_view() -> None:
                         f"**پەنجەمۆری یاساییی بەڵگە (SHA-256):** `{cs['evidence_hash']}`"
                     )
                     st.write(f"**ڕاپۆرتی لێکۆڵەر:** {cs['investigator_notes']}")
+                    new_st = str(
+                        st.selectbox(
+                            "گۆڕینی دۆخی دۆسیە:",
+                            ["OPEN", "WANTED", "UNDER_REVIEW", "CLOSED"],
+                            index=["OPEN", "WANTED", "UNDER_REVIEW", "CLOSED"].index(
+                                cs["case_status"]
+                            )
+                            if cs["case_status"] in ["OPEN", "WANTED", "UNDER_REVIEW", "CLOSED"]
+                            else 0,
+                            key=f"st_sel_{cs['id']}",
+                        )
+                        or cs["case_status"]
+                    )
+                    if st.button("💾 نوێکردنەوەی دۆخ", key=f"st_btn_{cs['id']}"):
+                        engine.update_case_status(int(cs["id"]), new_st)
+                        st.success("دۆخی دۆسیەکە نوێ کرایەوە.")
+                        st.rerun()
 
 
 if __name__ == "__main__":
