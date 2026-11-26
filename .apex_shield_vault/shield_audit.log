@@ -4,3 +4,4 @@
 [2026-11-16 08:49:44] [BLOCKED] Unauthorized external endpoint blocked: https://external-cloud-server.com/upload
 [2026-11-16 09:22:12] [CRITICAL] Shield alert! SigValid=True, Tampered=['auth.py', 'cameras.py', 'dashboard.py', 'db_manager_view.py', 'face_recognizer.py', 'run_app.py', 'style.py'], Missing=['gis-intelligence.py.py']
 [2026-11-17 11:44:58] [CRITICAL] Integrity status=ALERT_TAMPER_DETECTED; SigValid=True; Tampered=['apex_developer.py', 'auth.py', 'cameras.py', 'cyber_shield.py', 'dashboard.py', 'db_manager_view.py', 'face_recognizer.py', 'run_app.py', 'style.py']; Missing=['gis-intelligence.py.py']; NewFiles=['gis_intelligence.py']
+[2026-11-25 08:06:12] [INFO] Integrity baseline created. Files=42, Replacement=True

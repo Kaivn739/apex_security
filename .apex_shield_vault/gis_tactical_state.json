@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-24T21:28:07.700953",
+  "updated_at": "2026-11-25T07:41:19.894412",
   "cameras": {
     "CAM-01": {
       "name": "دەروازەی سەرەکی (North Gate)",
@@ -354,6 +354,78 @@
       "threat_type": "FIRE_SMOKE",
       "severity": "CRITICAL",
       "timestamp": "2026-11-24 21:28:07"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (78.5%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:12"
+    },
+    {
+      "suspect": "SMOKE_DETECTED (94.0%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:15"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (76.6%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:15"
+    },
+    {
+      "suspect": "SMOKE_DETECTED (68.2%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:17"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (77.5%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:17"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT (76.8%)",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-25 07:41:19"
     }
   ]
 }

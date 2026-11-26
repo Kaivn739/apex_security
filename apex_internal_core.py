@@ -59,8 +59,29 @@ class APEXInternalCPU:
         )
         self._dispatcher_thread.start()
 
-    def get_hardware_metrics(self) -> Dict[str, Any]:
-        """پشکنینی ڕاستەوخۆی CPU و RAM بەبێ دروستکردنی هیچ وەستانێک."""
+        # ... existing code ...
+        self._processed_tasks = 0
+        self._dropped_tasks = 0
+        self._start_time = time.time()
+        self._cached_metrics: Optional[Dict[str, Any]] = None
+        self._last_metrics_ts: float = 0.0
+
+        # تێلێگرامی ناوخۆیی و پردی داتابەیس لە پاشخاندا
+        self._dispatcher_thread = threading.Thread(
+            target=self._event_dispatcher_loop, name="APEX_EventDispatcher", daemon=True
+        )
+        self._dispatcher_thread.start()
+
+    def get_hardware_metrics(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """پشکنینی ڕاستەوخۆ و کاشکراوی CPU و RAM بەبێ دروستکردنی هیچ وەستانێک."""
+        now = time.monotonic()
+        if (
+            not force_refresh
+            and self._cached_metrics is not None
+            and (now - self._last_metrics_ts) < 0.5
+        ):
+            return dict(self._cached_metrics)
+
         cpu_pct = 0.0
         ram_pct = 0.0
         if psutil is not None:
@@ -82,7 +103,7 @@ class APEXInternalCPU:
             recommended_stride = 2
             load_state = "OPTIMAL"
 
-        return {
+        metrics = {
             "cpu_percent": round(cpu_pct, 1),
             "ram_percent": round(ram_pct, 1),
             "recommended_frame_stride": recommended_stride,
@@ -92,6 +113,11 @@ class APEXInternalCPU:
             "dropped_tasks": self._dropped_tasks,
             "uptime_seconds": int(time.time() - self._start_time),
         }
+        self._cached_metrics = metrics
+        self._last_metrics_ts = now
+        return dict(metrics)
+
+    # ... existing code ...
 
     def should_process_frame(self, frame_index: int) -> bool:
         """بڕیاردان لەسەر ئەوەی ئایا ئەم فریمە شیکاری AIـی لەسەر بکرێت یان تێپەڕێنرێت."""
