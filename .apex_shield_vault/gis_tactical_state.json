@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T07:41:19.894412",
+  "updated_at": "2026-11-26T10:32:04.645397",
   "cameras": {
     "CAM-01": {
       "name": "دەروازەی سەرەکی (North Gate)",
@@ -426,6 +426,78 @@
       "threat_type": "WEAPON",
       "severity": "CRITICAL",
       "timestamp": "2026-11-25 07:41:19"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 08:27:31"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 08:27:45"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 08:31:05"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 08:31:18"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 10:32:04"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-26 10:32:04"
     }
   ]
 }

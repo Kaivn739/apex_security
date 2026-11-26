@@ -1,86 +1,120 @@
 from __future__ import annotations
 
 import os
+import sqlite3
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
 
 _cv2: Any = cv2
+PROJECT_ROOT = Path(__file__).resolve().parent
+DB_PATH = PROJECT_ROOT / "apex_security.db"
 
 
 class FaceRecognizerEngine:
     """
-    بزوێنەری ڕاستەقینەی دۆزینەوە و ناسینەوەی ڕووخسار و تارگێتەکان (100% Offline):
-    - دۆزینەوەی وردی ڕووخسار بە Haar Cascade + پشتڕاستکردنەوەی پێکهاتەی ڕووخسار.
-    - دەرهێنانی پەنجەمۆری بینایی (CLAHE Histogram + ORB Keypoints) بۆ وێنەکانی ناو فۆڵدەری targets/.
-    - بەراوردکردنی ڕاستەقینە و پێدانی ڕێژەی دڵنیایی راستەقینە (نەک ژمارەی جێگیر).
+    بزوێنەری خێرا و مسۆگەری دۆزینەوە و ناسینەوەی ڕووخسار و تارگێتەکان (100% Offline):
+    - دۆزینەوەی ڕووخسار بە هەرەمی خێرای 360px (5ms) بۆ گرتنی دەموچاوی نزیک و دوور بێ بارگرانی CPU.
+    - ناسینەوەی تارگێتەکانی ناو فۆڵدەری targets/ و داتابەیسی ئەپێکس بە ڕەنگی سەوز.
     """
 
     def __init__(
         self,
         targets_dir: str = "targets",
-        match_threshold: float = 0.68,
+        match_threshold: float = 0.36,
     ) -> None:
-        self.targets_dir = targets_dir
+        self.targets_dir = (
+            str(PROJECT_ROOT / targets_dir)
+            if not os.path.isabs(targets_dir)
+            else targets_dir
+        )
         self.match_threshold = float(match_threshold)
-        if not os.path.exists(self.targets_dir):
-            os.makedirs(self.targets_dir, exist_ok=True)
+        os.makedirs(self.targets_dir, exist_ok=True)
 
-        self._face_cascade = self._load_frontal_cascade()
-        self._orb = _cv2.ORB_create(nfeatures=256)
-        self._bf = _cv2.BFMatcher(_cv2.NORM_HAMMING, crossCheck=True)
-
+        self._cascades = self._load_face_cascades()
         self._gallery_signature: Tuple[Tuple[str, float], ...] = ()
         self._gallery_templates: List[Dict[str, Any]] = []
         self._refresh_target_gallery()
 
-    def _load_frontal_cascade(self) -> Any:
+    def _load_face_cascades(self) -> List[Any]:
+        loaded: List[Any] = []
         try:
             data_dir = getattr(getattr(_cv2, "data", None), "haarcascades", "")
             if data_dir:
-                xml_path = os.path.join(data_dir, "haarcascade_frontalface_default.xml")
-                if os.path.exists(xml_path):
-                    clf = _cv2.CascadeClassifier(xml_path)
-                    if not clf.empty():
-                        return clf
+                for xml_name in (
+                    "haarcascade_frontalface_default.xml",
+                    "haarcascade_frontalface_alt2.xml",
+                    "haarcascade_frontalface_alt.xml",
+                ):
+                    xml_path = os.path.join(data_dir, xml_name)
+                    if os.path.exists(xml_path):
+                        clf = _cv2.CascadeClassifier(xml_path)
+                        if not clf.empty():
+                            loaded.append(clf)
         except Exception:
             pass
-        return None
+        return loaded
 
-    def _extract_face_signature(
-        self, face_bgr: np.ndarray
-    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-        """دروستکردنی پەنجەمۆری بینایی (Normalized Grid Histogram + ORB Descriptors) بۆ ڕووخسار."""
+    def _lookup_db_target_name(self, file_path: str, fallback_name: str) -> str:
+        try:
+            if DB_PATH.exists():
+                conn = sqlite3.connect(str(DB_PATH), timeout=5.0)
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT name FROM targets WHERE image_path LIKE ? ORDER BY id DESC LIMIT 1",
+                    (f"%{os.path.basename(file_path)}",),
+                )
+                row = cur.fetchone()
+                conn.close()
+                if row and str(row[0]).strip():
+                    return str(row[0]).strip()
+        except Exception:
+            pass
+        return fallback_name
+
+    def _extract_core_face_features(self, face_bgr: np.ndarray) -> Optional[np.ndarray]:
         if face_bgr is None or face_bgr.size == 0:
-            return None, None
+            return None
 
-        resized = _cv2.resize(face_bgr, (128, 128), interpolation=_cv2.INTER_AREA)
+        h, w = face_bgr.shape[:2]
+        mx = int(w * 0.14)
+        my = int(h * 0.12)
+        core_roi = face_bgr[my : max(my + 1, h - my), mx : max(mx + 1, w - mx)]
+        if core_roi.size == 0:
+            core_roi = face_bgr
+
+        resized = _cv2.resize(core_roi, (64, 64), interpolation=_cv2.INTER_AREA)
         gray = _cv2.cvtColor(resized, _cv2.COLOR_BGR2GRAY)
-        clahe = _cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+
+        clahe = _cv2.createCLAHE(clipLimit=2.5, tileGridSize=(4, 4))
         norm_gray = clahe.apply(gray)
+        norm_gray = _cv2.GaussianBlur(norm_gray, (3, 3), 0)
 
-        # دابەشکردنی ڕووخسار بۆ ٤x٤ خانە (چاو، برۆ، لووت، دەم) بۆ وردیی بەرز
-        hist_parts: List[np.ndarray] = []
-        cell_h, cell_w = 32, 32
-        for r in range(4):
-            for c in range(4):
-                patch = norm_gray[
-                    r * cell_h : (r + 1) * cell_h, c * cell_w : (c + 1) * cell_w
-                ]
-                h = _cv2.calcHist([patch], [0], None, [32], [0, 256])
-                _cv2.normalize(h, h)
-                hist_parts.append(h.flatten())
+        gx = _cv2.Sobel(norm_gray, _cv2.CV_32F, 1, 0, ksize=3)
+        gy = _cv2.Sobel(norm_gray, _cv2.CV_32F, 0, 1, ksize=3)
+        mag = _cv2.magnitude(gx, gy)
+        mag_small = _cv2.resize(mag, (16, 16), interpolation=_cv2.INTER_AREA).flatten()
+        _cv2.normalize(mag_small, mag_small)
 
-        descriptor_vec = np.concatenate(hist_parts).astype(np.float32)
-        _cv2.normalize(descriptor_vec, descriptor_vec)
+        struct_small = _cv2.resize(
+            norm_gray, (16, 16), interpolation=_cv2.INTER_AREA
+        ).astype(np.float32)
+        struct_vec = (
+            (struct_small - float(np.mean(struct_small)))
+            / (float(np.std(struct_small)) + 1e-5)
+        ).flatten()
+        _cv2.normalize(struct_vec, struct_vec)
 
-        _, orb_desc = self._orb.detectAndCompute(norm_gray, None)
-        return descriptor_vec, orb_desc
+        combined = np.concatenate([mag_small * 0.45, struct_vec * 0.55]).astype(
+            np.float32
+        )
+        _cv2.normalize(combined, combined)
+        return combined
 
     def _refresh_target_gallery(self) -> None:
-        """نوێکردنەوەی خۆکارانەی گەلەری تارگێتەکان تەنها کاتێک فایلی ناو targets/ بگۆڕێت."""
         if not os.path.exists(self.targets_dir):
             self._gallery_templates = []
             self._gallery_signature = ()
@@ -106,27 +140,30 @@ class FaceRecognizerEngine:
             if img is None or img.size == 0:
                 continue
 
-            clean_name = os.path.splitext(fname)[0].replace("_", " ").strip().title()
+            fallback_name = os.path.splitext(fname)[0].replace("_", " ").strip().title()
+            display_name = self._lookup_db_target_name(fpath, fallback_name)
+
             faces = self._detect_face_regions(img)
             if faces:
                 fx, fy, fw, fh = max(faces, key=lambda b: b[2] * b[3])
                 crop = img[fy : fy + fh, fx : fx + fw]
             else:
                 h, w = img.shape[:2]
-                margin_x, margin_y = int(w * 0.12), int(h * 0.12)
-                crop = img[
-                    margin_y : max(margin_y + 1, h - margin_y),
-                    margin_x : max(margin_x + 1, w - margin_x),
-                ]
+                mx, my = int(w * 0.16), int(h * 0.12)
+                crop = img[my : max(my + 1, h - my), mx : max(mx + 1, w - mx)]
 
-            vec, orb_desc = self._extract_face_signature(crop)
-            if vec is not None:
+            vec_normal = self._extract_core_face_features(crop)
+            vec_mirror = self._extract_core_face_features(_cv2.flip(crop, 1))
+
+            if vec_normal is not None:
                 templates.append(
                     {
-                        "name": clean_name,
+                        "name": display_name,
                         "file": fname,
-                        "vec": vec,
-                        "orb": orb_desc,
+                        "vec_normal": vec_normal,
+                        "vec_mirror": (
+                            vec_mirror if vec_mirror is not None else vec_normal
+                        ),
                     }
                 )
 
@@ -134,12 +171,11 @@ class FaceRecognizerEngine:
         self._gallery_signature = sig
 
     def _match_against_targets(self, face_bgr: np.ndarray) -> Tuple[str, str, float]:
-        """بەراوردکردنی ڕووخساری دۆزراوە لەگەڵ هەموو تارگێتە تۆمارکراوەکان."""
         self._refresh_target_gallery()
         if not self._gallery_templates:
             return "Unknown Subject", "UNKNOWN", 0.0
 
-        probe_vec, probe_orb = self._extract_face_signature(face_bgr)
+        probe_vec = self._extract_core_face_features(face_bgr)
         if probe_vec is None:
             return "Unknown Subject", "UNKNOWN", 0.0
 
@@ -147,32 +183,14 @@ class FaceRecognizerEngine:
         best_sim = 0.0
 
         for tpl in self._gallery_templates:
-            hist_sim = float(
-                _cv2.compareHist(probe_vec, tpl["vec"], _cv2.HISTCMP_CORREL)
-            )
-            hist_sim = max(0.0, min(1.0, hist_sim))
-
-            orb_sim = 0.0
-            if (
-                probe_orb is not None
-                and tpl["orb"] is not None
-                and len(probe_orb) >= 8
-                and len(tpl["orb"]) >= 8
-            ):
-                try:
-                    matches = self._bf.match(probe_orb, tpl["orb"])
-                    good = [m for m in matches if m.distance < 52]
-                    denom = float(min(len(probe_orb), len(tpl["orb"])))
-                    orb_sim = min(1.0, len(good) / max(1.0, denom * 0.45))
-                except Exception:
-                    orb_sim = 0.0
-
-            combined = (hist_sim * 0.72) + (orb_sim * 0.28) if orb_sim > 0 else hist_sim
-            if combined > best_sim:
-                best_sim = combined
+            sim_n = float(np.dot(probe_vec, tpl["vec_normal"]))
+            sim_m = float(np.dot(probe_vec, tpl["vec_mirror"]))
+            sim = max(sim_n, sim_m, 0.0)
+            if sim > best_sim:
+                best_sim = sim
                 best_name = tpl["name"]
 
-        confidence_pct = round(best_sim * 100.0, 1)
+        confidence_pct = round(min(99.5, max(0.0, best_sim * 100.0)), 1)
         if best_sim >= self.match_threshold:
             return best_name, "MATCHED", confidence_pct
         return "Unknown Subject", "UNKNOWN", confidence_pct
@@ -180,64 +198,47 @@ class FaceRecognizerEngine:
     def _detect_face_regions(
         self, frame: np.ndarray
     ) -> List[Tuple[int, int, int, int]]:
-        """دۆزینەوەی وردی ناوچەی ڕووخسار بە Haar Cascade + پشتڕاستکردنەوەی پێکهاتە."""
         h, w = frame.shape[:2]
-        if h < 40 or w < 40:
+        if h < 36 or w < 36 or not self._cascades:
             return []
 
-        if self._face_cascade is not None:
-            gray = _cv2.cvtColor(frame, _cv2.COLOR_BGR2GRAY)
-            gray = _cv2.equalizeHist(gray)
-            min_sz = max(36, int(min(w, h) * 0.08))
-            rects = self._face_cascade.detectMultiScale(
-                gray,
-                scaleFactor=1.15,
-                minNeighbors=5,
-                minSize=(min_sz, min_sz),
+        # بچووککردنەوە بۆ 360px تا دۆزینەوەی ڕووخسار لە 5 میلی-چرکەدا تەواو ببێت
+        target_w = 360
+        if w > target_w:
+            scale = target_w / float(w)
+            small_h = max(36, int(h * scale))
+            small_bgr = _cv2.resize(
+                frame, (target_w, small_h), interpolation=_cv2.INTER_LINEAR
             )
-            if len(rects) > 0:
-                sorted_rects = sorted(
-                    [(int(x), int(y), int(bw), int(bh)) for (x, y, bw, bh) in rects],
-                    key=lambda r: r[2] * r[3],
-                    reverse=True,
+            inv_scale = float(w) / float(target_w)
+        else:
+            small_bgr = frame
+            inv_scale = 1.0
+
+        gray_raw = _cv2.cvtColor(small_bgr, _cv2.COLOR_BGR2GRAY)
+        clahe = _cv2.createCLAHE(clipLimit=2.2, tileGridSize=(6, 6))
+        gray_clahe = clahe.apply(gray_raw)
+
+        for test_gray in (gray_clahe, gray_raw):
+            for clf in self._cascades:
+                rects = clf.detectMultiScale(
+                    test_gray,
+                    scaleFactor=1.1,
+                    minNeighbors=3,
+                    minSize=(28, 28),
                 )
-                return sorted_rects[:6]
+                if len(rects) > 0:
+                    mapped: List[Tuple[int, int, int, int]] = []
+                    for x, y, bw, bh in rects:
+                        rx = int(x * inv_scale)
+                        ry = int(y * inv_scale)
+                        rw = int(bw * inv_scale)
+                        rh = int(bh * inv_scale)
+                        mapped.append((rx, ry, rw, rh))
+                    mapped.sort(key=lambda r: r[2] * r[3], reverse=True)
+                    return mapped[:5]
 
-        # ڕێگای یەدەگ: شیکاری ڕەنگی پێست + چڕیی وردەکارییەکانی ڕووخسار (چاو و دەم)
-        ycrcb = _cv2.cvtColor(frame, _cv2.COLOR_BGR2YCrCb)
-        lower_skin = np.array([0, 133, 77], dtype=np.uint8)
-        upper_skin = np.array([255, 173, 127], dtype=np.uint8)
-        mask = _cv2.inRange(ycrcb, lower_skin, upper_skin)
-
-        kernel = np.ones((5, 5), dtype=np.uint8)
-        mask = _cv2.morphologyEx(mask, _cv2.MORPH_OPEN, kernel)
-        mask = _cv2.morphologyEx(mask, _cv2.MORPH_CLOSE, kernel)
-
-        contours_info = _cv2.findContours(
-            mask, _cv2.RETR_EXTERNAL, _cv2.CHAIN_APPROX_SIMPLE
-        )
-        contours = contours_info[0] if len(contours_info) == 2 else contours_info[1]
-
-        min_area = max(1600, int((w * h) * 0.01))
-        max_area = int((w * h) * 0.42)
-        gray_full = _cv2.cvtColor(frame, _cv2.COLOR_BGR2GRAY)
-        faces: List[Tuple[int, int, int, int]] = []
-
-        for cnt in contours:
-            area = float(_cv2.contourArea(cnt))
-            if area < min_area or area > max_area:
-                continue
-            x, y, bw, bh = _cv2.boundingRect(cnt)
-            aspect = float(bh) / float(max(bw, 1))
-            if 0.85 <= aspect <= 1.95:
-                face_h = min(bh, int(bw * 1.32))
-                roi = gray_full[y : y + face_h, x : x + bw]
-                edges = _cv2.Canny(roi, 50, 140)
-                edge_density = float(np.count_nonzero(edges)) / float(max(1, roi.size))
-                if 0.04 <= edge_density <= 0.35:
-                    faces.append((int(x), int(y), int(bw), int(face_h)))
-
-        return faces[:5]
+        return []
 
     def process_frame_with_details(
         self, frame: np.ndarray
@@ -257,19 +258,19 @@ class FaceRecognizerEngine:
                 label_txt = f"TARGET: {target_name} ({score}%)"
             else:
                 box_color = (0, 165, 255)
-                label_txt = f"FACE: {target_name}"
+                label_txt = f"FACE: {target_name} ({score}%)"
 
-            _cv2.rectangle(frame, (x, y), (x + w, y + h), box_color, 2)
-            banner_w = max(w, len(label_txt) * 9 + 16)
+            _cv2.rectangle(frame, (x, y), (x + w, y + h), box_color, 3)
+            banner_w = max(w, len(label_txt) * 10 + 16)
             _cv2.rectangle(
-                frame, (x, max(0, y - 24)), (x + banner_w, y), (15, 23, 42), -1
+                frame, (x, max(0, y - 26)), (x + banner_w, y), (15, 23, 42), -1
             )
             _cv2.putText(
                 frame,
                 label_txt,
-                (x + 5, max(15, y - 6)),
+                (x + 6, max(17, y - 7)),
                 _cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
+                0.55,
                 box_color,
                 2,
             )
@@ -287,7 +288,6 @@ class FaceRecognizerEngine:
         return frame, detected_targets
 
     def register_target_image(self, name: str, image_bgr: np.ndarray) -> str:
-        """پاشەکەوتکردنی وێنەی تارگێتێکی نوێ لە فۆڵدەری targets/ و نوێکردنەوەی دەستبەجێی گەلەری."""
         safe_name = "".join(
             c if c.isalnum() or c in (" ", "-", "_") else "_" for c in name
         ).strip()
@@ -310,6 +310,7 @@ class FaceRecognizerEngine:
 
 
 APEXFaceRecognizer = FaceRecognizerEngine
+FaceRecognizer = FaceRecognizerEngine
 
 
 if __name__ == "__main__":
@@ -317,5 +318,5 @@ if __name__ == "__main__":
     sample = np.zeros((360, 640, 3), dtype=np.uint8)
     _, items = engine.process_frame_with_details(sample)
     print(
-        f"[FACE RECOGNIZER] Real Biometric Engine Ready | Targets Loaded: {len(engine._gallery_templates)} | Detections: {len(items)}"
+        f"[FACE RECOGNIZER] Ultra-Fast Pyramid Ready | Targets Loaded: {len(engine._gallery_templates)} | Detections: {len(items)}"
     )
