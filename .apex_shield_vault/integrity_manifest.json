@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "shield_version": "2.0.0",
-  "updated_at": "2026-11-26T10:31:05.642420",
+  "updated_at": "2026-11-28T08:24:05.150951",
   "file_count": 43,
   "files": {
     "admin.py": "f82b2ae412eee2f004734fe53df7d6fa04314de239789dcf9b0593d56c6d99c2",
@@ -20,14 +20,14 @@
     "assistant.py": "be3a4ef6a19fde6b54bd608fda7e650d80319c6fb361c46b8fc68c6e9446f779",
     "auth.py": "5f689006db89372323a270ddf750e37c37f32e6e2ef8106b51c322bd11d1280d",
     "camera_config_view.py": "c4559f7a71430e61a1c0e5a45a7e627832cd2c37df844b1b726171009c95de48",
-    "cameras.py": "62963f156de0544381754643ec1636b6b5d242dc82e653fa2a9d68f8ef95eaf5",
+    "cameras.py": "5d146bbf18a5a8e6b7d653016a48a464ed8ef51ff70bd68148effc1b37c3d31c",
     "crowd_distress_detector.py": "1f194313cd9b141d8fe3d02db41d39abf010f394d453bf271e044d8845ef3178",
     "cyber_shield.py": "963153d87de57cafc30aa84ffe8c43f6002c9dcac91161f4cbe5f7fc4ccf4325",
-    "dashboard.py": "dbe196f7ec6a07b0a2bf73374b2ebd710c3f97bc71c72d1ce55db55f9dc552ff",
+    "dashboard.py": "8132e7136b7e1d7bb00a27c31a1af4414f64cf791cab3c861958ee37b4fd01f5",
     "database.py": "826c86e7fc9cd82933c078d0c97ad9d5b265b671d2deafad099f58dfa52aed40",
     "db_manager_view.py": "10e94a2efde44827e68a29d1e8f980b3637e5e5ac2ad84ee44007f30c7ae1a6f",
     "emergency_alerts_view.py": "6bfa80fe4e5127c90cd1d5c780132496ae0e1285cd1d86dbc83da4a3c25672f2",
-    "face_recognizer.py": "bb6a8dad44c49f541a0d4f82e99c821652038bbe36e980681e08c44e0bc4e898",
+    "face_recognizer.py": "1713f0c7943c273fbf93c3494c2ab25e8bddfc83d4c6892bb700f394a0c4cde7",
     "fire_smoke_detector.py": "c15eea0daa911d6964b468d55ee738dbb3aceef8635fc96a19ce7f3d0805395c",
     "forensics_view.py": "c699a832a32216bca86f5ef7be50852c799147a5b9d72bf211c5c2357c50d01a",
     "gis_intelligence.py": "a2b8ad1ce18176a7c0508ede64f019616dfd2afd56ebedc852003ab5973adbef",
@@ -46,7 +46,7 @@
     "test_step5_safe_fix.py": "3330b1e87d0bd340eccdeb402eae10c1e8c12f73cff6c539309a4d4f053dcfbe",
     "tier_guard.py": "48b3a99de9f84c544d0e251dc8308162e8a183925ab6f739634f43818913d7c9",
     "video_lab.py": "e08b9d6f9e501feff1121cab0e38b1121fa0092214f7428a98867edcb6e6a735",
-    "weapon_detector.py": "a4f5b94c174a579a9d21c4dd9e2a28728b2a1c28844a7c3d1c9612b4bc4816ff"
+    "weapon_detector.py": "16d474ea0721ff2f19c4cda4beff542a21e74409820759b150b9fde613a3694b"
   },
-  "signature": "0cb6024cb0f5c9a413d4f8cddd3ca871676dc7bfca8b871fa689f54b58a62733"
+  "signature": "3033450bf65690e381c631718d73ca7c9cb2dba80f6a3de9a54aecba65ade024"
 }

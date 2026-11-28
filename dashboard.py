@@ -23,7 +23,6 @@ TARGETS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_attr(module_name: str, *attr_names: str) -> Any:
-    """هاوردەکردنی سەلامەتی مۆدیول و کڵاسەکان بێ هەڵەی Pylance."""
     try:
         mod = importlib.import_module(module_name)
         for name in attr_names:
@@ -53,7 +52,6 @@ render_gis_intelligence_view: Any = _load_attr(
 )
 render_forensics_view: Any = _load_attr("forensics_view", "render_forensics_view")
 CameraBackend: Any = _load_attr("cameras", "CameraStream", "CameraStreamer")
-AsyncAIWorkerBackend: Any = _load_attr("cameras", "AsyncAIWorker")
 FaceBackend: Any = _load_attr(
     "face_recognizer", "FaceRecognizerEngine", "APEXFaceRecognizer"
 )
@@ -61,7 +59,6 @@ ALPRBackend: Any = _load_attr("alpr_engine", "ALPREngine", "APEXALPRPipeline")
 
 
 def _init_target_watchlist_tables() -> None:
-    """دروستکردنی خشتەی تارگێتەکان و ڕێکخستنی تەلەگرام لەناو داتابەیسی سەرەکیی ئەپێکس."""
     conn = sqlite3.connect(str(DB_PATH), timeout=10.0)
     conn.execute("PRAGMA journal_mode=WAL;")
     cur = conn.cursor()
@@ -123,7 +120,6 @@ def _format_telegram_alert_text(
     ts_str: str,
     details_note: str,
 ) -> str:
-    """ڕێکخستنی دەقی ئاگادارکردنەوەی تەلەگرام بە پێی زمانی هەڵبژێردراو (کوردی / ئینگلیزی / عەرەبی)."""
     lang = _get_system_setting("telegram_lang", "KU")
     note_clean = details_note or "پشتڕاستکراوەتەوە لەلایەن زیرەکی دەستکردی APEX"
 
@@ -156,7 +152,6 @@ def _format_telegram_alert_text(
 
 
 def _send_telegram_alert_async(caption: str, image_path: Optional[str] = None) -> None:
-    """ناردنی کۆپییەک لە ئاگادارکردنەوە و وێنە بۆ تەلەگرام لە پاشبنەما (بێ وەستاندنی کامێرا)."""
     token = _get_system_setting("telegram_bot_token", "")
     chat_id = _get_system_setting("telegram_chat_id", "")
     enabled = _get_system_setting("telegram_enabled", "0") == "1"
@@ -191,13 +186,10 @@ def _send_telegram_alert_async(caption: str, image_path: Optional[str] = None) -
                 body.extend(f"\r\n--{boundary}--\r\n".encode("utf-8"))
 
                 url = f"https://api.telegram.org/bot{token}/sendPhoto"
-                req = urllib.request.Request(
-                    url,
-                    data=bytes(body),
-                    headers={
-                        "Content-Type": f"multipart/form-data; boundary={boundary}"
-                    },
-                )
+                req = urllib.request.Request(url, data=bytes(body))
+                req.add_header(
+                        "Content-Type", f"multipart/form-data; boundary={boundary}"
+                        )
                 with urllib.request.urlopen(req, timeout=5):
                     pass
             else:
@@ -215,7 +207,6 @@ def _send_telegram_alert_async(caption: str, image_path: Optional[str] = None) -
 
 
 def _sync_targets_to_engines(engines: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """پەیوەستکردنی هەموو تارگێتەکانی ناو داتابەیس و فۆڵدەری targets/ بە مۆدیولەکانی AI."""
     _init_target_watchlist_tables()
     conn = sqlite3.connect(str(DB_PATH), timeout=10.0)
     cur = conn.cursor()
@@ -277,7 +268,6 @@ def _sync_targets_to_engines(engines: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def _inject_dvr_styles() -> None:
-    """چەسپاندنی ستایلی تەواوی Hikvision Tactical DVR لەناو Streamlit."""
     st.markdown(
         """
         <style>
@@ -314,7 +304,6 @@ def _inject_dvr_styles() -> None:
 
 @st.cache_resource
 def _init_all_offline_engines() -> Dict[str, Any]:
-    """بارکردنی یەکجاری هەموو بزوێنەرەکانی AI و بەستنەوەیان بە CPU ناوخۆیی."""
     engines: Dict[str, Any] = {
         "face": (
             FaceBackend(targets_dir=str(TARGETS_DIR))
@@ -360,7 +349,6 @@ def _handle_confirmed_target_hit(
     annotated_frame: np.ndarray,
     details_note: str = "",
 ) -> None:
-    """پاشەکەوتکردن لە داتابەیس + نەخشەی GIS + ناردن بۆ تەلەگرام بە زمانی هەڵبژێردراو."""
     cooldown_map: Dict[str, float] = engines.setdefault("alert_cooldown", {})
     key = f"{cam_id}:{event_type}:{target_label}"
     now = time.monotonic()
@@ -412,8 +400,12 @@ def _handle_confirmed_target_hit(
     _send_telegram_alert_async(tg_caption, image_path=saved_snap_path)
 
 
-def _make_standby_frame(cam_id: str, label: str, active_ai: List[str]) -> np.ndarray:
-    """دروستکردنی شاشەی ئامادەباشیی Hikvision DVR."""
+def _make_standby_frame(
+    cam_id: str,
+    label: str,
+    active_ai: List[str],
+    status_msg: str = "HIKVISION DVR STANDBY — NO SIGNAL",
+) -> np.ndarray:
     canvas = np.zeros((320, 560, 3), dtype=np.uint8)
     canvas[:] = (11, 17, 32)
     _cv2.rectangle(canvas, (6, 6), (554, 314), (30, 41, 59), 2)
@@ -428,11 +420,15 @@ def _make_standby_frame(cam_id: str, label: str, active_ai: List[str]) -> np.nda
     )
     _cv2.putText(
         canvas,
-        "HIKVISION DVR STANDBY — NO SIGNAL",
+        status_msg,
         (18, 165),
         _cv2.FONT_HERSHEY_SIMPLEX,
-        0.65,
-        (148, 163, 184),
+        0.58,
+        (
+            (248, 113, 113)
+            if "ERROR" in status_msg or "OPEN" in status_msg
+            else (148, 163, 184)
+        ),
         2,
     )
     ai_txt = ", ".join(active_ai) if active_ai else "MONITOR ONLY"
@@ -456,8 +452,8 @@ def _get_default_camera_matrix() -> Dict[str, Dict[str, Any]]:
                 "source": 0,
                 "face": True,
                 "alpr": False,
-                "fire": True,
-                "weapon": True,
+                "fire": False,
+                "weapon": False,
                 "crowd": False,
             },
             "CAM-02": {
@@ -465,7 +461,7 @@ def _get_default_camera_matrix() -> Dict[str, Dict[str, Any]]:
                 "source": 0,
                 "face": False,
                 "alpr": True,
-                "fire": True,
+                "fire": False,
                 "weapon": False,
                 "crowd": False,
             },
@@ -475,7 +471,7 @@ def _get_default_camera_matrix() -> Dict[str, Dict[str, Any]]:
                 "face": True,
                 "alpr": False,
                 "fire": True,
-                "weapon": True,
+                "weapon": False,
                 "crowd": True,
             },
             "CAM-04": {
@@ -484,7 +480,7 @@ def _get_default_camera_matrix() -> Dict[str, Dict[str, Any]]:
                 "face": False,
                 "alpr": False,
                 "fire": True,
-                "weapon": True,
+                "weapon": False,
                 "crowd": True,
             },
         }
@@ -512,28 +508,41 @@ def _close_camera_stream(cam_obj: Any) -> None:
         cam_obj.stop()
 
 
-def _resize_for_web_display(bgr_img: np.ndarray, max_w: int = 720) -> np.ndarray:
-    """گونجاندنی قەبارەی وێنە بۆ ناردن بە WebSocket بەبێ پچڕانی WinError 10054."""
-    h, w = bgr_img.shape[:2]
-    if w > max_w and max_w > 0:
-        scale = max_w / float(w)
-        new_h = max(1, int(h * scale))
-        return _cv2.resize(bgr_img, (max_w, new_h), interpolation=_cv2.INTER_LINEAR)
-    return bgr_img
-
-
 def _analyze_channel_frame(
     frame: np.ndarray,
     cam_id: str,
-    cfg: Dict[str, Any],
+    cfg_ref: Dict[str, Any],
     engines: Dict[str, Any],
-) -> Tuple[np.ndarray, List[str]]:
-    """شیکارکردنی فریمێک بە پێی ڕێکخستنی AIـی تایبەت بە هەر کامێرایەک."""
+) -> Tuple[np.ndarray, List[str], List[Dict[str, Any]]]:
     analyzed = frame.copy()
     alerts: List[str] = []
-    cam_name = str(cfg.get("name", cam_id))
+    face_boxes: List[Dict[str, Any]] = []
+    cam_name = str(cfg_ref.get("name", cam_id))
 
-    if cfg.get("fire") and engines["fire"] is not None:
+    if cfg_ref.get("face") and engines["face"] is not None:
+        try:
+            if hasattr(engines["face"], "process_frame_with_details"):
+                analyzed, t_det = engines["face"].process_frame_with_details(analyzed)
+                face_boxes = list(t_det)
+                for t in t_det:
+                    t_name = str(t.get("name", "Unknown"))
+                    t_score = t.get("score", 0.0)
+                    if t.get("status") == "MATCHED":
+                        alerts.append(f"[{cam_id}] 🎯 TARGET: {t_name} ({t_score}%)")
+                        _handle_confirmed_target_hit(
+                            engines,
+                            cam_id,
+                            cam_name,
+                            t_name,
+                            "TARGET_FACE_MATCH",
+                            "CRITICAL",
+                            analyzed,
+                            f"Biometric Match Score: {t_score}%",
+                        )
+        except Exception:
+            pass
+
+    if cfg_ref.get("fire") and engines["fire"] is not None:
         try:
             analyzed, f_det = engines["fire"].process_frame(
                 analyzed, camera_id=cam_id, emit_events=False
@@ -554,7 +563,7 @@ def _analyze_channel_frame(
         except Exception:
             pass
 
-    if cfg.get("weapon") and engines["weapon"] is not None:
+    if cfg_ref.get("weapon") and engines["weapon"] is not None:
         try:
             analyzed, w_det = engines["weapon"].process_frame(
                 analyzed, camera_id=cam_id, emit_events=False
@@ -575,7 +584,7 @@ def _analyze_channel_frame(
         except Exception:
             pass
 
-    if cfg.get("crowd") and engines["crowd"] is not None:
+    if cfg_ref.get("crowd") and engines["crowd"] is not None:
         try:
             analyzed, cr_det = engines["crowd"].process_frame(
                 analyzed, camera_id=cam_id, emit_events=False
@@ -596,30 +605,8 @@ def _analyze_channel_frame(
         except Exception:
             pass
 
-    if cfg.get("face") and engines["face"] is not None:
-        try:
-            if hasattr(engines["face"], "process_frame_with_details"):
-                analyzed, t_det = engines["face"].process_frame_with_details(analyzed)
-                for t in t_det:
-                    if t.get("status") == "MATCHED":
-                        t_name = str(t.get("name", "TARGET_MATCH"))
-                        t_score = t.get("score", 0.0)
-                        alerts.append(f"[{cam_id}] 🎯 TARGET: {t_name} ({t_score}%)")
-                        _handle_confirmed_target_hit(
-                            engines,
-                            cam_id,
-                            cam_name,
-                            t_name,
-                            "TARGET_FACE_MATCH",
-                            "CRITICAL",
-                            analyzed,
-                            f"Biometric Match Score: {t_score}%",
-                        )
-        except Exception:
-            pass
-
     if (
-        cfg.get("alpr")
+        cfg_ref.get("alpr")
         and engines["alpr"] is not None
         and hasattr(engines["alpr"], "process_frame")
     ):
@@ -645,11 +632,49 @@ def _analyze_channel_frame(
         except Exception:
             pass
 
-    return analyzed, alerts
+    return analyzed, alerts, face_boxes
+
+
+def _draw_persisted_face_boxes(
+    frame: np.ndarray, boxes: List[Dict[str, Any]]
+) -> np.ndarray:
+    """کێشانی بەردەوامی چوارچێوەی ڕووخسار لە نێوان فریمەکاندا تا هەرگیز ون نەبێت."""
+    out = frame.copy()
+    for item in boxes:
+        bbox = item.get("bbox")
+        if not bbox or len(bbox) != 4:
+            continue
+        x, y, w, h = [int(v) for v in bbox]
+        status = str(item.get("status", "UNKNOWN"))
+        t_name = str(item.get("name", "Unknown Subject"))
+        score = item.get("score", 0.0)
+        color = (0, 255, 0) if status == "MATCHED" else (0, 165, 255)
+        label = (
+            f"TARGET: {t_name} ({score}%)"
+            if status == "MATCHED"
+            else f"FACE: {t_name} ({score}%)"
+        )
+        _cv2.rectangle(out, (x, y), (x + w, y + h), color, 3)
+        _cv2.rectangle(
+            out,
+            (x, max(0, y - 26)),
+            (x + max(w, len(label) * 9 + 14), y),
+            (15, 23, 42),
+            -1,
+        )
+        _cv2.putText(
+            out,
+            label,
+            (x + 5, max(18, y - 7)),
+            _cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            color,
+            2,
+        )
+    return out
 
 
 def _render_targets_watchlist_view(engines: Dict[str, Any]) -> None:
-    """بەشی تایبەتی بەڕێوەبردنی تارگێتەکان و ڕێکخستنی زمانی بۆتی تەلەگرام."""
     st.markdown("## 🎯 TARGETS & WATCHLIST COMMAND (بەڕێوەبردنی تارگێتەکان)")
     st.caption(
         "هەر تارگێتێک لێرە زیاد بکەیت، ڕاستەوخۆ دەچێتە ناو داتابەیسی گشتیی ئەپێکس و هەموو کامێراکان چاودێری دەکەن؛ "
@@ -926,7 +951,6 @@ def _render_targets_watchlist_view(engines: Dict[str, Any]) -> None:
 
 
 def show_dashboard() -> None:
-    """داشبۆردی سەرەکیی APEX بە ڕووکاری Hikvision DVR Command Center."""
     _inject_dvr_styles()
     _init_target_watchlist_tables()
 
@@ -996,22 +1020,16 @@ def show_dashboard() -> None:
     if nav_tab == "🗄️ DATABASE & 4-STAGE ARCHIVE":
         if render_db_manager_view is not None:
             render_db_manager_view()
-        else:
-            st.warning("مۆدیولی db_manager_view بەردەست نییە.")
         return
 
     if nav_tab == "🗺️ TACTICAL GIS (CIA/FBI MODE)":
         if render_gis_intelligence_view is not None:
             render_gis_intelligence_view()
-        else:
-            st.warning("مۆدیولی gis_intelligence بەردەست نییە.")
         return
 
     if nav_tab == "🔬 FORENSICS & INVESTIGATION":
         if render_forensics_view is not None:
             render_forensics_view()
-        else:
-            st.warning("مۆدیولی forensics_view بەردەست نییە.")
         return
 
     if nav_tab == "⚙️ CAMERA CONFIG & LINKS":
@@ -1049,14 +1067,11 @@ def show_dashboard() -> None:
             m2.metric("Protected Files", report["protected_files"])
             m3.metric("Cloud / Internet Block", "ACTIVE (100% Offline)")
             st.json(report)
-        else:
-            st.warning("مۆدیولی cyber_shield بەردەست نییە.")
         return
 
     with st.expander(
         "🎛️ خشتەی بەستنەوەی کامێرا و سیستەمەکانی AI (Camera-AI Matrix)", expanded=False
     ):
-        st.caption("بۆ هەر کامێرایەک دیاری بکە کام بزوێنەری AI لەسەری کار بکات:")
         h_cols = st.columns([1.3, 1, 1, 1, 1, 1])
         h_cols[0].markdown("**کامێرا**")
         h_cols[1].markdown("**Face ID**")
@@ -1065,6 +1080,7 @@ def show_dashboard() -> None:
         h_cols[4].markdown("**Weapon چەک**")
         h_cols[5].markdown("**Crowd/Distress**")
 
+        is_live = bool(st.session_state.get("is_streaming", False))
         for cid, cfg in cam_matrix.items():
             r_cols = st.columns([1.3, 1, 1, 1, 1, 1])
             r_cols[0].write(f"**{cid}** ({cfg['name']})")
@@ -1072,30 +1088,35 @@ def show_dashboard() -> None:
                 "Face",
                 value=bool(cfg["face"]),
                 key=f"mx_f_{cid}",
+                disabled=is_live,
                 label_visibility="collapsed",
             )
             cfg["alpr"] = r_cols[2].checkbox(
                 "ALPR",
                 value=bool(cfg["alpr"]),
                 key=f"mx_a_{cid}",
+                disabled=is_live,
                 label_visibility="collapsed",
             )
             cfg["fire"] = r_cols[3].checkbox(
                 "Fire",
                 value=bool(cfg["fire"]),
                 key=f"mx_fi_{cid}",
+                disabled=is_live,
                 label_visibility="collapsed",
             )
             cfg["weapon"] = r_cols[4].checkbox(
                 "Weapon",
                 value=bool(cfg["weapon"]),
                 key=f"mx_w_{cid}",
+                disabled=is_live,
                 label_visibility="collapsed",
             )
             cfg["crowd"] = r_cols[5].checkbox(
                 "Crowd",
                 value=bool(cfg["crowd"]),
                 key=f"mx_c_{cid}",
+                disabled=is_live,
                 label_visibility="collapsed",
             )
 
@@ -1254,8 +1275,6 @@ def show_dashboard() -> None:
         active_cids = list(cam_boxes.keys())
         streams_by_source: Dict[Union[int, str], Any] = {}
         channel_sources: Dict[str, Union[int, str]] = {}
-        ai_workers: Dict[str, Any] = {}
-        last_overlay_by_cid: Dict[str, np.ndarray] = {}
 
         for cid in active_cids:
             src = (
@@ -1269,82 +1288,60 @@ def show_dashboard() -> None:
                     cid, src, str(cam_matrix[cid]["name"])
                 )
 
-            if len(active_cids) > 1 and AsyncAIWorkerBackend is not None:
-                ch_cfg = dict(cam_matrix[cid])
-                ai_workers[cid] = AsyncAIWorkerBackend(
-                    cid,
-                    lambda frm, c_id=cid, c_cfg=ch_cfg: _analyze_channel_frame(
-                        frm, c_id, c_cfg, engines
-                    ),
-                )
-
         frame_idx = 0
         recent_alerts: List[str] = []
+        last_face_boxes: Dict[str, Tuple[List[Dict[str, Any]], float]] = {}
 
         try:
             while st.session_state.get("is_streaming", False):
                 frames_by_source: Dict[Union[int, str], np.ndarray] = {}
-                ai_frames_by_source: Dict[Union[int, str], np.ndarray] = {}
-
                 for src, stream_obj in streams_by_source.items():
                     if stream_obj is None:
                         continue
                     raw = stream_obj.get_frame(copy=True)
-                    if raw is not None and isinstance(raw, np.ndarray) and raw.size > 0:
+                    if raw is not None and raw.size > 0:
                         frames_by_source[src] = raw
-                        if hasattr(stream_obj, "get_ai_frame"):
-                            ai_frm = stream_obj.get_ai_frame(max_width=640)
-                            if ai_frm is not None:
-                                ai_frames_by_source[src] = ai_frm
 
                 if not frames_by_source:
-                    time.sleep(0.03)
+                    for cid, box in cam_boxes.items():
+                        box.image(
+                            _make_standby_frame(
+                                cid,
+                                cam_matrix[cid]["name"],
+                                _active_ai_tags(cid),
+                                status_msg=f"WAITING FOR CAMERA ({channel_sources[cid]})...",
+                            ),
+                            width="stretch",
+                        )
+                    time.sleep(0.15)
                     continue
 
                 frame_idx += 1
                 cycle_alerts: List[str] = []
+                now_mono = time.monotonic()
 
                 for cid in active_cids:
                     src = channel_sources[cid]
                     raw_frame = frames_by_source.get(src)
                     if raw_frame is None:
-                        cam_boxes[cid].image(
-                            _make_standby_frame(
-                                cid, cam_matrix[cid]["name"], _active_ai_tags(cid)
-                            ),
-                            width="stretch",
-                        )
                         continue
 
-                    if len(active_cids) == 1:
-                        # شیکارکردنی خێرا و پاراستنی WebSocket لە پچڕان
-                        display_bgr, ch_alerts = _analyze_channel_frame(
+                    if (frame_idx % 2) == 0:
+                        display_bgr, ch_alerts, f_boxes = _analyze_channel_frame(
                             raw_frame, cid, cam_matrix[cid], engines
                         )
                         cycle_alerts.extend(ch_alerts)
+                        if f_boxes:
+                            last_face_boxes[cid] = (f_boxes, now_mono)
                     else:
-                        worker = ai_workers.get(cid)
-                        if worker is not None:
-                            if (frame_idx % 2) == 0:
-                                ai_input = ai_frames_by_source.get(src, raw_frame)
-                                worker.submit_frame(ai_input)
-                            annotated_ai, ch_alerts = worker.get_latest_result(
-                                max_age_sec=2.5
+                        display_bgr = raw_frame.copy()
+                        cached = last_face_boxes.get(cid)
+                        if cached is not None and (now_mono - cached[1]) <= 1.2:
+                            display_bgr = _draw_persisted_face_boxes(
+                                display_bgr, cached[0]
                             )
-                            cycle_alerts.extend(ch_alerts)
-                            if annotated_ai is not None:
-                                last_overlay_by_cid[cid] = annotated_ai
-                            display_bgr = last_overlay_by_cid.get(cid, raw_frame)
-                        else:
-                            display_bgr, ch_alerts = _analyze_channel_frame(
-                                raw_frame, cid, cam_matrix[cid], engines
-                            )
-                            cycle_alerts.extend(ch_alerts)
 
-                    web_bgr = _resize_for_web_display(
-                        display_bgr, max_w=720 if len(active_cids) == 1 else 480
-                    )
-                    rgb_out = _cv2.cvtColor(web_bgr, _cv2.COLOR_BGR2RGB)
+                    rgb_out = _cv2.cvtColor(display_bgr, _cv2.COLOR_BGR2RGB)
                     cam_boxes[cid].image(rgb_out, width="stretch")
 
                 if cycle_alerts:
@@ -1354,10 +1351,8 @@ def show_dashboard() -> None:
                     recent_alerts = recent_alerts[:12]
                     live_feed_box.error("\n\n".join(recent_alerts))
 
-                time.sleep(0.065)
+                time.sleep(0.05)
         finally:
-            for worker in ai_workers.values():
-                worker.stop()
             for stream_obj in streams_by_source.values():
                 _close_camera_stream(stream_obj)
 

@@ -12,100 +12,60 @@ _cv2: Any = cv2
 
 
 class CameraStream:
-    """خوێندنەوەی سەربەخۆ و خاوبوونەوەی-سفر (Zero-Lag) بۆ فریمەکانی کامێرا (Webcam / Capture Card / RTSP)."""
+    """خوێندنەوەی سادە، ڕاستەوخۆ و بێ کێشەی وێبکامی ویندۆز و RTSP."""
 
     def __init__(
         self,
         source: Union[int, str] = 0,
         cam_type: str = "Webcam",
         cam_id: str = "CAM-01",
-        target_fps: int = 30,
+        target_fps: int = 24,
     ) -> None:
         self.cam_id = cam_id
         self.source: Union[int, str] = source
         self.cam_type = cam_type
-        self.target_fps = max(10, min(60, int(target_fps)))
         self.running = True
         self.connected = False
         self.last_frame_ts = 0.0
-        self.fps_actual = 0.0
-
         self.lock = threading.Lock()
         self.frame: Optional[np.ndarray] = None
 
         self.thread = threading.Thread(
             target=self._update,
-            name=f"APEX-CamStream-{self.cam_id}",
+            name=f"APEX-Cam-{self.cam_id}",
             daemon=True,
         )
         self.thread.start()
 
     def _open_capture(self) -> Any:
         if isinstance(self.source, int) or str(self.source).isdigit():
-            idx = int(self.source)
-            backend = (
-                getattr(_cv2, "CAP_DSHOW", 0)
-                if os.name == "nt"
-                else getattr(_cv2, "CAP_ANY", 0)
-            )
-            cap = _cv2.VideoCapture(idx, backend)
-        else:
-            os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
-            cap = _cv2.VideoCapture(str(self.source), getattr(_cv2, "CAP_FFMPEG", 0))
-
-        if cap is not None and cap.isOpened():
-            try:
-                cap.set(_cv2.CAP_PROP_BUFFERSIZE, 1)
-                cap.set(_cv2.CAP_PROP_FPS, self.target_fps)
-            except Exception:
-                pass
-        return cap
+            return _cv2.VideoCapture(int(self.source))
+        os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
+        return _cv2.VideoCapture(str(self.source), getattr(_cv2, "CAP_FFMPEG", 0))
 
     def _update(self) -> None:
-        frame_counter = 0
-        fps_window_start = time.monotonic()
-
         while self.running:
             cap = None
             try:
                 cap = self._open_capture()
                 if cap is None or not cap.isOpened():
                     self.connected = False
-                    time.sleep(0.4)
+                    time.sleep(0.3)
                     continue
 
                 self.connected = True
                 while self.running and cap.isOpened():
-                    # پاککردنەوەی هەر فریمێکی کۆنی بافەر بۆ نەهێشتنی دواکەوتن
-                    grabbed = cap.grab()
-                    if not grabbed:
-                        self.connected = False
-                        time.sleep(0.01)
-                        break
-
-                    ret, raw = cap.retrieve()
-                    if (
-                        ret
-                        and raw is not None
-                        and isinstance(raw, np.ndarray)
-                        and raw.size > 0
-                    ):
-                        now = time.monotonic()
+                    ret, raw = cap.read()
+                    if ret and raw is not None and raw.size > 0:
                         with self.lock:
                             self.frame = raw
-                            self.last_frame_ts = now
-
-                        frame_counter += 1
-                        elapsed = now - fps_window_start
-                        if elapsed >= 1.0:
-                            self.fps_actual = round(frame_counter / elapsed, 1)
-                            frame_counter = 0
-                            fps_window_start = now
+                            self.last_frame_ts = time.monotonic()
+                        time.sleep(0.02)
                     else:
-                        time.sleep(0.005)
+                        time.sleep(0.04)
             except Exception:
                 self.connected = False
-                time.sleep(0.4)
+                time.sleep(0.3)
             finally:
                 self.connected = False
                 if cap is not None:
@@ -121,23 +81,12 @@ class CameraStream:
             return self.frame.copy() if copy else self.frame
 
     def get_ai_frame(self, max_width: int = 640) -> Optional[np.ndarray]:
-        """گەڕاندنەوەی فریمێکی قەبارە-گونجاو بۆ پشکنینی خێرای AI بەبێ خاوکردنەوەی ڤیدیۆی سەرەکی."""
-        with self.lock:
-            if self.frame is None:
-                return None
-            src = self.frame.copy()
-
-        h, w = src.shape[:2]
-        if w > max_width and max_width > 0:
-            scale = max_width / float(w)
-            new_h = max(1, int(h * scale))
-            return _cv2.resize(src, (max_width, new_h), interpolation=_cv2.INTER_LINEAR)
-        return src
+        return self.get_frame(copy=True)
 
     def is_healthy(self, max_stale_sec: float = 2.0) -> bool:
-        if not self.connected or self.last_frame_ts <= 0.0:
-            return False
-        return (time.monotonic() - self.last_frame_ts) <= max_stale_sec
+        return (
+            self.connected and (time.monotonic() - self.last_frame_ts) <= max_stale_sec
+        )
 
     def release(self) -> None:
         self.running = False
@@ -147,10 +96,7 @@ class CameraStream:
 
 
 class AsyncAIWorker:
-    """
-    بزوێنەری شیکارکردنی AI لە پاشبنەما (Background Thread):
-    فریمەکانی پشکنین بە سەربەخۆیی شیکار دەکات تا پەخشی زیندووی کامێرا هەرگیز خاو نەبێتەوە.
-    """
+    """بزوێنەری سووکی شیکارکردنی AI لە پاشبنەما."""
 
     def __init__(
         self,
@@ -169,33 +115,26 @@ class AsyncAIWorker:
 
         self._thread = threading.Thread(
             target=self._worker_loop,
-            name=f"APEX-AIWorker-{self.cam_id}",
+            name=f"APEX-Worker-{self.cam_id}",
             daemon=True,
         )
         self._thread.start()
 
     def submit_frame(self, frame: np.ndarray) -> None:
-        """ناردنی نوێترین فریم بۆ شیکارکردن (ئەگەر شیکارکەر سەرقاڵ بێت فریمە کۆنەکە دەگۆڕێت بە نوێیەکە)."""
         with self._lock:
             self._pending_frame = frame.copy()
         self._event.set()
 
     def _worker_loop(self) -> None:
         while self.running:
-            triggered = self._event.wait(timeout=0.2)
-            if not self.running:
-                break
-            if not triggered:
+            if not self._event.wait(timeout=0.2):
                 continue
-
             self._event.clear()
             with self._lock:
                 work_frame = self._pending_frame
                 self._pending_frame = None
-
             if work_frame is None:
                 continue
-
             try:
                 annotated, alerts = self.analyzer_fn(work_frame)
                 with self._lock:
@@ -206,7 +145,7 @@ class AsyncAIWorker:
                 pass
 
     def get_latest_result(
-        self, max_age_sec: float = 1.2
+        self, max_age_sec: float = 2.5
     ) -> Tuple[Optional[np.ndarray], List[str]]:
         with self._lock:
             if self._latest_annotated is None:
@@ -221,8 +160,6 @@ class AsyncAIWorker:
 
 
 class CameraStreamer(CameraStream):
-    """ناوی هاوتا بۆ پشتگیریکردنی مۆدیۆلە کۆنەکان."""
-
     def __init__(
         self, cam_id_or_source: Any = 0, source: Any = None, cam_type: str = "Webcam"
     ) -> None:
@@ -252,7 +189,3 @@ class APEXCameraManager:
         for stream in self.streamers.values():
             stream.stop()
         self.streamers.clear()
-
-
-if __name__ == "__main__":
-    print("[CAMERAS ENGINE] Zero-Lag Multi-Threaded Engine Ready")

@@ -16,15 +16,15 @@ DB_PATH = PROJECT_ROOT / "apex_security.db"
 
 class FaceRecognizerEngine:
     """
-    بزوێنەری خێرا و مسۆگەری دۆزینەوە و ناسینەوەی ڕووخسار و تارگێتەکان (100% Offline):
-    - دۆزینەوەی ڕووخسار بە هەرەمی خێرای 360px (5ms) بۆ گرتنی دەموچاوی نزیک و دوور بێ بارگرانی CPU.
-    - ناسینەوەی تارگێتەکانی ناو فۆڵدەری targets/ و داتابەیسی ئەپێکس بە ڕەنگی سەوز.
+    بزوێنەری خێرا و وردی دۆزینەوە و ناسینەوەی تارگێتەکان (100% Offline):
+    - دۆزینەوەی ڕووخسار بە فرە-پێوەر (CLAHE + Normal Gray + Equalized Gray) بۆ گرتنی ڕووخسار لە گۆشە و ڕووناکیی جیاوازدا.
+    - بەراوردکردنی ناوەندی ڕووخسار لەگەڵ هەموو وێنەکانی ناو targets/ و داتابەیس.
     """
 
     def __init__(
         self,
         targets_dir: str = "targets",
-        match_threshold: float = 0.36,
+        match_threshold: float = 0.24,
     ) -> None:
         self.targets_dir = (
             str(PROJECT_ROOT / targets_dir)
@@ -35,6 +35,7 @@ class FaceRecognizerEngine:
         os.makedirs(self.targets_dir, exist_ok=True)
 
         self._cascades = self._load_face_cascades()
+        self._clahe = _cv2.createCLAHE(clipLimit=2.4, tileGridSize=(8, 8))
         self._gallery_signature: Tuple[Tuple[str, float], ...] = ()
         self._gallery_templates: List[Dict[str, Any]] = []
         self._refresh_target_gallery()
@@ -47,7 +48,7 @@ class FaceRecognizerEngine:
                 for xml_name in (
                     "haarcascade_frontalface_default.xml",
                     "haarcascade_frontalface_alt2.xml",
-                    "haarcascade_frontalface_alt.xml",
+                    "haarcascade_profileface.xml",
                 ):
                     xml_path = os.path.join(data_dir, xml_name)
                     if os.path.exists(xml_path):
@@ -75,44 +76,28 @@ class FaceRecognizerEngine:
             pass
         return fallback_name
 
-    def _extract_core_face_features(self, face_bgr: np.ndarray) -> Optional[np.ndarray]:
+    def _compute_face_signature(
+        self, face_bgr: np.ndarray
+    ) -> Optional[Tuple[np.ndarray, np.ndarray]]:
         if face_bgr is None or face_bgr.size == 0:
             return None
 
         h, w = face_bgr.shape[:2]
-        mx = int(w * 0.14)
-        my = int(h * 0.12)
-        core_roi = face_bgr[my : max(my + 1, h - my), mx : max(mx + 1, w - mx)]
-        if core_roi.size == 0:
-            core_roi = face_bgr
+        mx, my = int(w * 0.12), int(h * 0.10)
+        roi = face_bgr[my : max(my + 1, h - my), mx : max(mx + 1, w - mx)]
+        if roi.size == 0:
+            roi = face_bgr
 
-        resized = _cv2.resize(core_roi, (64, 64), interpolation=_cv2.INTER_AREA)
-        gray = _cv2.cvtColor(resized, _cv2.COLOR_BGR2GRAY)
+        gray = _cv2.cvtColor(roi, _cv2.COLOR_BGR2GRAY)
+        gray_eq = self._clahe.apply(_cv2.resize(gray, (48, 48)))
 
-        clahe = _cv2.createCLAHE(clipLimit=2.5, tileGridSize=(4, 4))
-        norm_gray = clahe.apply(gray)
-        norm_gray = _cv2.GaussianBlur(norm_gray, (3, 3), 0)
+        vec = gray_eq.astype(np.float32).flatten()
+        vec = (vec - float(np.mean(vec))) / (float(np.std(vec)) + 1e-5)
+        _cv2.normalize(vec, vec)
 
-        gx = _cv2.Sobel(norm_gray, _cv2.CV_32F, 1, 0, ksize=3)
-        gy = _cv2.Sobel(norm_gray, _cv2.CV_32F, 0, 1, ksize=3)
-        mag = _cv2.magnitude(gx, gy)
-        mag_small = _cv2.resize(mag, (16, 16), interpolation=_cv2.INTER_AREA).flatten()
-        _cv2.normalize(mag_small, mag_small)
-
-        struct_small = _cv2.resize(
-            norm_gray, (16, 16), interpolation=_cv2.INTER_AREA
-        ).astype(np.float32)
-        struct_vec = (
-            (struct_small - float(np.mean(struct_small)))
-            / (float(np.std(struct_small)) + 1e-5)
-        ).flatten()
-        _cv2.normalize(struct_vec, struct_vec)
-
-        combined = np.concatenate([mag_small * 0.45, struct_vec * 0.55]).astype(
-            np.float32
-        )
-        _cv2.normalize(combined, combined)
-        return combined
+        hist = _cv2.calcHist([gray_eq], [0], None, [32], [0, 256]).flatten()
+        _cv2.normalize(hist, hist)
+        return vec, hist
 
     def _refresh_target_gallery(self) -> None:
         if not os.path.exists(self.targets_dir):
@@ -149,21 +134,19 @@ class FaceRecognizerEngine:
                 crop = img[fy : fy + fh, fx : fx + fw]
             else:
                 h, w = img.shape[:2]
-                mx, my = int(w * 0.16), int(h * 0.12)
+                mx, my = int(w * 0.14), int(h * 0.12)
                 crop = img[my : max(my + 1, h - my), mx : max(mx + 1, w - mx)]
 
-            vec_normal = self._extract_core_face_features(crop)
-            vec_mirror = self._extract_core_face_features(_cv2.flip(crop, 1))
-
-            if vec_normal is not None:
+            sig_n = self._compute_face_signature(crop)
+            sig_m = self._compute_face_signature(_cv2.flip(crop, 1))
+            if sig_n is not None:
                 templates.append(
                     {
                         "name": display_name,
-                        "file": fname,
-                        "vec_normal": vec_normal,
-                        "vec_mirror": (
-                            vec_mirror if vec_mirror is not None else vec_normal
-                        ),
+                        "vec_n": sig_n[0],
+                        "hist_n": sig_n[1],
+                        "vec_m": sig_m[0] if sig_m is not None else sig_n[0],
+                        "hist_m": sig_m[1] if sig_m is not None else sig_n[1],
                     }
                 )
 
@@ -175,69 +158,77 @@ class FaceRecognizerEngine:
         if not self._gallery_templates:
             return "Unknown Subject", "UNKNOWN", 0.0
 
-        probe_vec = self._extract_core_face_features(face_bgr)
-        if probe_vec is None:
+        probe = self._compute_face_signature(face_bgr)
+        if probe is None:
             return "Unknown Subject", "UNKNOWN", 0.0
 
+        p_vec, p_hist = probe
         best_name = "Unknown Subject"
-        best_sim = 0.0
+        best_score = 0.0
 
         for tpl in self._gallery_templates:
-            sim_n = float(np.dot(probe_vec, tpl["vec_normal"]))
-            sim_m = float(np.dot(probe_vec, tpl["vec_mirror"]))
-            sim = max(sim_n, sim_m, 0.0)
-            if sim > best_sim:
-                best_sim = sim
+            dot_n = max(0.0, float(np.dot(p_vec, tpl["vec_n"])))
+            dot_m = max(0.0, float(np.dot(p_vec, tpl["vec_m"])))
+            struct_sim = max(dot_n, dot_m)
+
+            hist_n = max(
+                0.0, float(_cv2.compareHist(p_hist, tpl["hist_n"], _cv2.HISTCMP_CORREL))
+            )
+            hist_m = max(
+                0.0, float(_cv2.compareHist(p_hist, tpl["hist_m"], _cv2.HISTCMP_CORREL))
+            )
+            hist_sim = max(hist_n, hist_m)
+
+            combined = (struct_sim * 0.65) + (hist_sim * 0.35)
+            if combined > best_score:
+                best_score = combined
                 best_name = tpl["name"]
 
-        confidence_pct = round(min(99.5, max(0.0, best_sim * 100.0)), 1)
-        if best_sim >= self.match_threshold:
-            return best_name, "MATCHED", confidence_pct
-        return "Unknown Subject", "UNKNOWN", confidence_pct
+        pct = round(min(99.5, max(0.0, best_score * 100.0)), 1)
+        if best_score >= self.match_threshold:
+            return best_name, "MATCHED", pct
+        return "Unknown Subject", "UNKNOWN", pct
 
     def _detect_face_regions(
         self, frame: np.ndarray
     ) -> List[Tuple[int, int, int, int]]:
-        h, w = frame.shape[:2]
-        if h < 36 or w < 36 or not self._cascades:
+        if frame is None or frame.size == 0 or not self._cascades:
             return []
 
-        # بچووککردنەوە بۆ 360px تا دۆزینەوەی ڕووخسار لە 5 میلی-چرکەدا تەواو ببێت
-        target_w = 360
-        if w > target_w:
-            scale = target_w / float(w)
-            small_h = max(36, int(h * scale))
-            small_bgr = _cv2.resize(
-                frame, (target_w, small_h), interpolation=_cv2.INTER_LINEAR
-            )
-            inv_scale = float(w) / float(target_w)
-        else:
-            small_bgr = frame
-            inv_scale = 1.0
+        h_orig, w_orig = frame.shape[:2]
+        target_w = 480.0
+        scale = target_w / float(max(w_orig, 1)) if w_orig > 500 else 1.0
+        small = (
+            _cv2.resize(frame, (int(w_orig * scale), int(h_orig * scale)))
+            if scale < 1.0
+            else frame
+        )
+        inv = 1.0 / scale
 
-        gray_raw = _cv2.cvtColor(small_bgr, _cv2.COLOR_BGR2GRAY)
-        clahe = _cv2.createCLAHE(clipLimit=2.2, tileGridSize=(6, 6))
-        gray_clahe = clahe.apply(gray_raw)
+        gray = _cv2.cvtColor(small, _cv2.COLOR_BGR2GRAY)
+        gray_eq = self._clahe.apply(gray)
+        gray_hist = _cv2.equalizeHist(gray)
 
-        for test_gray in (gray_clahe, gray_raw):
+        for img_pass in (gray_eq, gray, gray_hist):
             for clf in self._cascades:
                 rects = clf.detectMultiScale(
-                    test_gray,
-                    scaleFactor=1.1,
-                    minNeighbors=3,
-                    minSize=(28, 28),
+                    img_pass,
+                    scaleFactor=1.06,
+                    minNeighbors=2,
+                    minSize=(22, 22),
                 )
                 if len(rects) > 0:
-                    mapped: List[Tuple[int, int, int, int]] = []
-                    for x, y, bw, bh in rects:
-                        rx = int(x * inv_scale)
-                        ry = int(y * inv_scale)
-                        rw = int(bw * inv_scale)
-                        rh = int(bh * inv_scale)
-                        mapped.append((rx, ry, rw, rh))
-                    mapped.sort(key=lambda r: r[2] * r[3], reverse=True)
-                    return mapped[:5]
-
+                    boxes: List[Tuple[int, int, int, int]] = []
+                    for x, y, w, h in rects[:4]:
+                        boxes.append(
+                            (
+                                max(0, int(x * inv)),
+                                max(0, int(y * inv)),
+                                min(w_orig, int(w * inv)),
+                                min(h_orig, int(h * inv)),
+                            )
+                        )
+                    return boxes
         return []
 
     def process_frame_with_details(
@@ -254,24 +245,27 @@ class FaceRecognizerEngine:
             target_name, status, score = self._match_against_targets(face_crop)
 
             if status == "MATCHED":
-                box_color = (0, 255, 0)
-                label_txt = f"TARGET: {target_name} ({score}%)"
+                color = (0, 255, 0)
+                label = f"TARGET: {target_name} ({score}%)"
             else:
-                box_color = (0, 165, 255)
-                label_txt = f"FACE: {target_name} ({score}%)"
+                color = (0, 165, 255)
+                label = f"FACE: {target_name} ({score}%)"
 
-            _cv2.rectangle(frame, (x, y), (x + w, y + h), box_color, 3)
-            banner_w = max(w, len(label_txt) * 10 + 16)
+            _cv2.rectangle(frame, (x, y), (x + w, y + h), color, 3)
             _cv2.rectangle(
-                frame, (x, max(0, y - 26)), (x + banner_w, y), (15, 23, 42), -1
+                frame,
+                (x, max(0, y - 26)),
+                (x + max(w, len(label) * 9 + 14), y),
+                (15, 23, 42),
+                -1,
             )
             _cv2.putText(
                 frame,
-                label_txt,
-                (x + 6, max(17, y - 7)),
+                label,
+                (x + 5, max(18, y - 7)),
                 _cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
-                box_color,
+                color,
                 2,
             )
 
@@ -311,12 +305,3 @@ class FaceRecognizerEngine:
 
 APEXFaceRecognizer = FaceRecognizerEngine
 FaceRecognizer = FaceRecognizerEngine
-
-
-if __name__ == "__main__":
-    engine = FaceRecognizerEngine()
-    sample = np.zeros((360, 640, 3), dtype=np.uint8)
-    _, items = engine.process_frame_with_details(sample)
-    print(
-        f"[FACE RECOGNIZER] Ultra-Fast Pyramid Ready | Targets Loaded: {len(engine._gallery_templates)} | Detections: {len(items)}"
-    )

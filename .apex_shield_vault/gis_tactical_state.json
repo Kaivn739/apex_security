@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-26T10:32:04.645397",
+  "updated_at": "2026-11-28T08:27:00.024854",
   "cameras": {
     "CAM-01": {
       "name": "دەروازەی سەرەکی (North Gate)",
@@ -23,7 +23,7 @@
       "y": 150,
       "lat": 36.1938,
       "lon": 44.0142,
-      "status": "ACTIVE"
+      "status": "ALERT"
     },
     "CAM-04": {
       "name": "پارکی ئۆتۆمبێل (South Parking)",
@@ -31,7 +31,7 @@
       "y": 360,
       "lat": 36.1895,
       "lon": 44.0102,
-      "status": "ACTIVE"
+      "status": "ALERT"
     },
     "CAM-05": {
       "name": "دەرچوونی ڕۆژئاوا (West Exit)",
@@ -498,6 +498,114 @@
       "threat_type": "WEAPON",
       "severity": "CRITICAL",
       "timestamp": "2026-11-26 10:32:04"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-28 08:03:43"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-28 08:04:19"
+    },
+    {
+      "suspect": "WEAPON_SUSPECT",
+      "camera_id": "CAM-01",
+      "zone_name": "دەروازەی سەرەکی (North Gate)",
+      "x": 180,
+      "y": 130,
+      "lat": 36.1911,
+      "lon": 44.0091,
+      "threat_type": "WEAPON",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-28 08:05:57"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-03",
+      "zone_name": "شەقامی ڕۆژهەڵات (East Avenue)",
+      "x": 650,
+      "y": 150,
+      "lat": 36.1938,
+      "lon": 44.0142,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-28 08:26:57"
+    },
+    {
+      "suspect": "SMOKE_DETECTED",
+      "camera_id": "CAM-04",
+      "zone_name": "پارکی ئۆتۆمبێل (South Parking)",
+      "x": 310,
+      "y": 360,
+      "lat": 36.1895,
+      "lon": 44.0102,
+      "threat_type": "FIRE_SMOKE",
+      "severity": "CRITICAL",
+      "timestamp": "2026-11-28 08:26:57"
+    },
+    {
+      "suspect": "CROWD_SURGE",
+      "camera_id": "CAM-03",
+      "zone_name": "شەقامی ڕۆژهەڵات (East Avenue)",
+      "x": 650,
+      "y": 150,
+      "lat": 36.1938,
+      "lon": 44.0142,
+      "threat_type": "CROWD_DISTRESS",
+      "severity": "HIGH",
+      "timestamp": "2026-11-28 08:26:58"
+    },
+    {
+      "suspect": "EMERGENCY_DISTRESS_MOTION",
+      "camera_id": "CAM-03",
+      "zone_name": "شەقامی ڕۆژهەڵات (East Avenue)",
+      "x": 650,
+      "y": 150,
+      "lat": 36.1938,
+      "lon": 44.0142,
+      "threat_type": "CROWD_DISTRESS",
+      "severity": "HIGH",
+      "timestamp": "2026-11-28 08:26:58"
+    },
+    {
+      "suspect": "CROWD_SURGE",
+      "camera_id": "CAM-04",
+      "zone_name": "پارکی ئۆتۆمبێل (South Parking)",
+      "x": 310,
+      "y": 360,
+      "lat": 36.1895,
+      "lon": 44.0102,
+      "threat_type": "CROWD_DISTRESS",
+      "severity": "HIGH",
+      "timestamp": "2026-11-28 08:26:59"
+    },
+    {
+      "suspect": "EMERGENCY_DISTRESS_MOTION",
+      "camera_id": "CAM-04",
+      "zone_name": "پارکی ئۆتۆمبێل (South Parking)",
+      "x": 310,
+      "y": 360,
+      "lat": 36.1895,
+      "lon": 44.0102,
+      "threat_type": "CROWD_DISTRESS",
+      "severity": "HIGH",
+      "timestamp": "2026-11-28 08:27:00"
     }
   ]
 }
